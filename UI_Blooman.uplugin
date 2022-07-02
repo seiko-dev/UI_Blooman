@@ -1,0 +1,30 @@
+{
+	"FileVersion": 3,
+	"Version": 1,
+	"VersionName": "1.0",
+	"FriendlyName": "UI_Blooman",
+	"Description": "Add a UI widget to bloom child elements.",
+	"Category": "Other",
+	"CreatedBy": "seiko_dev",
+	"CreatedByURL": "https://twitter.com/seiko_dev",
+	"DocsURL": "",
+	"MarketplaceURL": "",
+	"SupportURL": "",
+	"CanContainContent": true,
+	"IsBetaVersion": true,
+	"IsExperimentalVersion": false,
+	"Installed": false,
+	"Modules": [
+		{
+			"Name": "UI_Blooman",
+			"Type": "Runtime",
+			"LoadingPhase": "Default"
+		}
+	],
+	"Plugins": [
+   		{
+      		"Name": "EditorScriptingUtilities",
+      		"Enabled": true
+        }                  
+	]
+}
