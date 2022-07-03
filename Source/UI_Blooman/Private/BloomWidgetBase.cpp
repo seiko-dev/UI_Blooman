@@ -2,6 +2,7 @@
 
 
 #include "BloomWidgetBase.h"
+#include "UObject/Field.h"
 
 #define LOCTEXT_NAMESPACE "UI_Blooman"
 
@@ -13,13 +14,11 @@ int32 UBloomWidgetBase::NativePaint(const FPaintArgs& Args, const FGeometry& All
 }
 
 #if WITH_EDITOR
-#include "EditorAssetLibrary.h"
 #include "IContentBrowserSingleton.h"
 #include "ContentBrowserModule.h"
-#include "../Private/SPathPicker.h"
 #include "MainFrame/Public/Interfaces/IMainFrameModule.h"
+#include "Widgets/Input/SEditableTextBox.h"
 
-// ref: https://qiita.com/Rinderon/items/059463ea4e44fc54f121
 // directory selection dialog (slate)
 class SDirectoryDialog : public SCompoundWidget
 {
@@ -34,26 +33,43 @@ public:
 
     virtual void Construct(const FArguments& InArgs, const FString& InBasePath)
     {
-        FString basePath(InBasePath);
+        FString basePath(FPackageName::GetLongPackagePath(InBasePath));
 
-        if (UEditorAssetLibrary::DoesDirectoryExist(InBasePath)) {
-            basePath = InBasePath;
-
-        } else {
-            UE_LOG(LogTemp, Warning, TEXT("InBasePath(%s) is not exist, \"/Game\" is used instead."), *InBasePath);
+        if (basePath.IsEmpty())
+        {
+            UE_LOG(LogTemp, Warning, TEXT("InBasePath(%s) is not exist, \"/Game\" is used instead."), *InBasePath)
             basePath = TEXT("/Game");
         }
+
+        SelectedPath = InBasePath;
+
+        FContentBrowserModule& contentBrowserModule = FModuleManager::LoadModuleChecked<FContentBrowserModule>("ContentBrowser");
 
         FPathPickerConfig config;
         config.DefaultPath = basePath;
         config.OnPathSelected = FOnPathSelected::CreateRaw(this, &SDirectoryDialog::OnPathSelected);
 
-        FContentBrowserModule& contentBrowserModule
-            = FModuleManager::LoadModuleChecked<FContentBrowserModule>("ContentBrowser");
+        AssetName = TEXT("T_Bloom");
 
-        TSharedPtr<SPathPicker> pathPicker = StaticCastSharedRef<SPathPicker>(
-            contentBrowserModule.Get().CreatePathPicker(config));
+        // Texture名入力ボックス
+        TSharedRef<SHorizontalBox> nameBox = SNew(SHorizontalBox)
+            + SHorizontalBox::Slot()
+            .AutoWidth()
+            .Padding(0, 0, 10, 0)
+            .VAlign(VAlign_Center)
+            [
+                SNew(STextBlock)
+                .Text(LOCTEXT("TextureNameLabel", "Texture Name"))
+            ]
+            + SHorizontalBox::Slot()
+            [
+                SNew(SEditableTextBox)
+                .Text(FText::FromString(AssetName))
+                .OnTextCommitted(this, &SDirectoryDialog::OnNameChange)
+                .MinDesiredWidth(250)
+            ];
 
+        // OK / Cancelボタンパーツ
         TSharedRef<SHorizontalBox> buttonsBox = SNew(SHorizontalBox)
             + SHorizontalBox::Slot()
             .AutoWidth()
@@ -62,11 +78,11 @@ public:
             [
                 SNew(SButton)
                 .Text(LOCTEXT("DirectoryPickerConfirmButton", "OK"))
-            .ContentPadding(FMargin(8.0f, 2.0f))
-            .IsEnabled(this, &SDirectoryDialog::IsConfirmButtonEnabled)
-            .OnClicked(this, &SDirectoryDialog::OnConfirmButtonClicked)
+                .ContentPadding(FMargin(8.0f, 2.0f))
+                .IsEnabled(this, &SDirectoryDialog::IsConfirmButtonEnabled)
+                .OnClicked(this, &SDirectoryDialog::OnConfirmButtonClicked)
             ]
-        + SHorizontalBox::Slot()
+            + SHorizontalBox::Slot()
             .AutoWidth()
             .VAlign(VAlign_Bottom)
             .Padding(4.0f, 3.0f)
@@ -77,14 +93,22 @@ public:
             .OnClicked(this, &SDirectoryDialog::OnCancelButtonClicked)
             ];
 
+
+        // パーツ配置
         TSharedRef<SVerticalBox> mainBox = SNew(SVerticalBox)
             + SVerticalBox::Slot()
             .FillHeight(1.0f)
             .Padding(0.0f, 0.0f, 0.0f, 4.0f)
             [
-                pathPicker.ToSharedRef()
+                contentBrowserModule.Get().CreatePathPicker(config)
             ]
-        + SVerticalBox::Slot()
+            + SVerticalBox::Slot()
+            .AutoHeight()
+            .Padding(0.0f, 0.0f, 0.0f, 4.0f)
+            [
+                nameBox
+            ]
+            + SVerticalBox::Slot()
             .AutoHeight()
             .HAlign(HAlign_Fill)
             .Padding(0.0f)
@@ -99,10 +123,15 @@ public:
     }
 
 public: // public methods
-    bool HasValidResult() const {
+    bool HasValidResult() const 
+    {
         return ConfirmedFlag && (!SelectedPath.IsEmpty());
     }
-    const FString& GetPath() const { return SelectedPath; }
+    
+    FString GetPath() const 
+    { 
+        return SelectedPath + TEXT("/") + AssetName;
+    }
 
 private: // internal methods: utilities
     void CloseDialog()
@@ -131,26 +160,36 @@ private: // internal methods: delegates
         return FReply::Handled();
     }
 
-    void OnPathSelected(const FString& InCurrentPath) { SelectedPath = InCurrentPath; }
+    void OnPathSelected(const FString& InCurrentPath)
+    {
+        SelectedPath = InCurrentPath;
+    }
+
+    void OnNameChange(const FText& NewName, ETextCommit::Type CommitInfo)
+    {
+        if(!NewName.IsEmpty()){
+            AssetName = NewName.ToString();
+        }
+    }
 
 private: // internal properties
     FString SelectedPath;
+    FString AssetName;
     bool ConfirmedFlag = false;
 };
 #endif // WITH_EDITOR
 
 
-void UBloomWidgetBase::OpenSaveTextureDialog(bool& IsSuccess, FString& Path, FString& Name)
+void UBloomWidgetBase::OpenSaveTextureDialog(const FString& InBasePath, bool& IsSuccess, FString& Path)
 {
 #if WITH_EDITOR
     TSharedRef<SWindow> window = SNew(SWindow)
-        .Title(LOCTEXT("BrowseForFolderTitle", "Browse Folders"))
+        .Title(LOCTEXT("BrowseForFolderTitle", "Save Static Texture"))
         .ClientSize(FVector2D(320.0f, 320.0f))
         .SizingRule(ESizingRule::UserSized)
         .SupportsMaximize(false)
         .SupportsMinimize(false);
-
-    const FString InBasePath("/Game/");
+        
     TSharedRef<SDirectoryDialog> dialog = SNew(SDirectoryDialog, InBasePath);
     window->SetContent(dialog);
 
@@ -169,8 +208,19 @@ void UBloomWidgetBase::OpenSaveTextureDialog(bool& IsSuccess, FString& Path, FSt
 #endif // WITH_EDITOR
 
     Path.Empty();
-    Name.Empty();
     IsSuccess = false;
+}
+
+void UBloomWidgetBase::NotifyTexPropertyChanged()
+{
+#if WITH_EDITOR
+    if (TexPropHandle.IsValid()) {
+        const UObject* Obj(nullptr);
+        if (TexPropHandle->GetValue(Obj) == FPropertyAccess::Result::Success) {
+            TexPropHandle->SetValue(Obj);
+        }
+    }
+#endif
 }
 
 #undef LOCTEXT_NAMESPACE 

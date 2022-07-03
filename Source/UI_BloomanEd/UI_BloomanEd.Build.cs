@@ -2,9 +2,9 @@
 
 using UnrealBuildTool;
 
-public class UI_Blooman : ModuleRules
+public class UI_BloomanEd : ModuleRules
 {
-	public UI_Blooman(ReadOnlyTargetRules Target) : base(Target)
+	public UI_BloomanEd(ReadOnlyTargetRules Target) : base(Target)
 	{
 		PCHUsage = ModuleRules.PCHUsageMode.UseExplicitOrSharedPCHs;
 		
@@ -27,6 +27,7 @@ public class UI_Blooman : ModuleRules
 			{
 				"Core",
 				// ... add other public dependencies that you statically link with here ...
+				"UI_Blooman",
             }
             );
 			
@@ -40,8 +41,6 @@ public class UI_Blooman : ModuleRules
 				"SlateCore",
 
 				// ... add private dependencies that you statically link with here ...	
-				"UMG",
-                "RenderCore",
             }
             );
 		
