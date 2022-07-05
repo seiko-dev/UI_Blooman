@@ -4,7 +4,6 @@
 #include "PropertyEditorModule.h"
 #include "BloomWidgetBaseCustomization.h"
 #include "BloomWidgetBase.h"
-#include "UMGEditorProjectSettings.h"
 
 #define LOCTEXT_NAMESPACE "FUI_BloomanEdModule"
 
