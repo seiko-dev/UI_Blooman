@@ -10,7 +10,7 @@
 void FUI_BloomanEdModule::StartupModule()
 {
     FPropertyEditorModule& PropertyModule = FModuleManager::LoadModuleChecked<FPropertyEditorModule>("PropertyEditor");
-    // FDManDetailsCustomization のインスタンスを ADMan の詳細パネルのカスタムレイアウトとして割り当てる
+    
     PropertyModule.RegisterCustomClassLayout(UBloomWidgetBase::StaticClass()->GetFName(),
                                              FOnGetDetailCustomizationInstance::CreateStatic(&FBloomWidgetBaseCustomization::MakeInstance));
     PropertyModule.NotifyCustomizationModuleChanged();

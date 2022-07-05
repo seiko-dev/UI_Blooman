@@ -51,7 +51,7 @@ public:
 
         AssetName = TEXT("T_Bloom");
 
-        // Texture–¼“ü—Íƒ{ƒbƒNƒX
+        // Textureåå…¥åŠ›ãƒœãƒƒã‚¯ã‚¹
         TSharedRef<SHorizontalBox> nameBox = SNew(SHorizontalBox)
             + SHorizontalBox::Slot()
             .AutoWidth()
@@ -69,7 +69,7 @@ public:
                 .MinDesiredWidth(250)
             ];
 
-        // OK / Cancelƒ{ƒ^ƒ“ƒp[ƒc
+        // OK / Cancelãƒœã‚¿ãƒ³ãƒ‘ãƒ¼ãƒ„
         TSharedRef<SHorizontalBox> buttonsBox = SNew(SHorizontalBox)
             + SHorizontalBox::Slot()
             .AutoWidth()
@@ -94,7 +94,7 @@ public:
             ];
 
 
-        // ƒp[ƒc”z’u
+        // ãƒ‘ãƒ¼ãƒ„é…ç½®
         TSharedRef<SVerticalBox> mainBox = SNew(SVerticalBox)
             + SVerticalBox::Slot()
             .FillHeight(1.0f)

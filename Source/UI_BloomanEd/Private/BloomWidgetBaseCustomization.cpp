@@ -40,7 +40,7 @@ void FBloomWidgetBaseCustomization::CustomizeDetails(IDetailLayoutBuilder& Detai
 
     {
         FDetailWidgetRow& ButtonRow = SettingsCategory.AddCustomRow(FText::GetEmpty());
-        // ’†g‚Ìİ’è (ƒ{ƒ^ƒ“‚Ìƒ‰ƒxƒ‹‚ÆƒNƒŠƒbƒN‚Ì“®ì‚ğİ’è)
+        // ä¸­èº«ã®è¨­å®š (ãƒœã‚¿ãƒ³ã®ãƒ©ãƒ™ãƒ«ã¨ã‚¯ãƒªãƒƒã‚¯æ™‚ã®å‹•ä½œã‚’è¨­å®š)
         ButtonRow.WholeRowContent()
             [
                 ButtonBox
@@ -49,7 +49,7 @@ void FBloomWidgetBaseCustomization::CustomizeDetails(IDetailLayoutBuilder& Detai
 }
 
 
-// ƒ{ƒ^ƒ“ƒNƒŠƒbƒN‚ÉŒÄ‚Ño‚³‚ê‚éƒƒ\ƒbƒh
+// ãƒœã‚¿ãƒ³ã‚¯ãƒªãƒƒã‚¯æ™‚ã«å‘¼ã³å‡ºã•ã‚Œã‚‹ãƒ¡ã‚½ãƒƒãƒ‰
 FReply FBloomWidgetBaseCustomization::OnCreateNewTextureClicked()
 {
     for (auto& Obj : SelectedObjects) {
