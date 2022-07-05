@@ -6,9 +6,9 @@
 #include "BloomWidgetBase.generated.h"
 
 /**
- * 
+ * 疑似発光Widgetの基底
  */
-UCLASS()
+UCLASS(Abstract)
 class UI_BLOOMAN_API UBloomWidgetBase : public UUserWidget
 {
 	GENERATED_BODY()

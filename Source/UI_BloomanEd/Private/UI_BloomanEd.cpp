@@ -4,6 +4,7 @@
 #include "PropertyEditorModule.h"
 #include "BloomWidgetBaseCustomization.h"
 #include "BloomWidgetBase.h"
+#include "UMGEditorProjectSettings.h"
 
 #define LOCTEXT_NAMESPACE "FUI_BloomanEdModule"
 
@@ -11,8 +12,10 @@ void FUI_BloomanEdModule::StartupModule()
 {
     FPropertyEditorModule& PropertyModule = FModuleManager::LoadModuleChecked<FPropertyEditorModule>("PropertyEditor");
     
-    PropertyModule.RegisterCustomClassLayout(UBloomWidgetBase::StaticClass()->GetFName(),
-                                             FOnGetDetailCustomizationInstance::CreateStatic(&FBloomWidgetBaseCustomization::MakeInstance));
+    PropertyModule.RegisterCustomClassLayout(
+        UBloomWidgetBase::StaticClass()->GetFName(),
+        FOnGetDetailCustomizationInstance::CreateStatic(&FBloomWidgetBaseCustomization::MakeInstance));
+
     PropertyModule.NotifyCustomizationModuleChanged();
 }
 
