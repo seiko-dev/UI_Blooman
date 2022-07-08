@@ -46,7 +46,7 @@ public:
     bool HasShowOutlineFlag();
 
 public:
-    UPROPERTY(BlueprintReadWrite, EditAnywhere, Category ="Settings")
+    UPROPERTY(BlueprintReadWrite, EditAnywhere, Category ="BloomDraw")
     UTexture2D* BloomTexture;
 
 #if WITH_EDITOR

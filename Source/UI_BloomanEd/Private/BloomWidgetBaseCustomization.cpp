@@ -24,10 +24,10 @@ void FBloomWidgetBaseCustomization::CustomizeDetails(IDetailLayoutBuilder& Detai
 {
     // UI構築
     {
-        IDetailCategoryBuilder& SettingsCategory = DetailLayout.EditCategory("Settings", 
+        IDetailCategoryBuilder& SettingsCategory = DetailLayout.EditCategory("BloomSettings", 
                                                                              FText::GetEmpty(),
-                                                                             ECategoryPriority::Important);
-    
+                                                                             ECategoryPriority::Variable);
+
         TSharedRef<SHorizontalBox> ButtonBox = SNew(SHorizontalBox)
             + SHorizontalBox::Slot()
             .AutoWidth()
@@ -58,6 +58,10 @@ void FBloomWidgetBaseCustomization::CustomizeDetails(IDetailLayoutBuilder& Detai
             TSharedPtr<SWidget> AssetEditor = SearchNearestParentAssetEditor(ActiveTab);
             DesinerView = SearchNearestChildDesignerView(AssetEditor);
         }
+
+        IDetailCategoryBuilder& DrawCategory = DetailLayout.EditCategory("BloomDraw",
+                                                                             FText::GetEmpty(),
+                                                                             ECategoryPriority::Variable);
     }
 
     TexHandle = DetailLayout.GetProperty(GET_MEMBER_NAME_CHECKED(UBloomWidgetBase, BloomTexture));
