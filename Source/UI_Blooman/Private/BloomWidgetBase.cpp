@@ -1,10 +1,15 @@
-// Fill out your copyright notice in the Description page of Project Settings.
+// Copyright seiko_dev. All Rights Reserved.
 
 
 #include "BloomWidgetBase.h"
 #include "UObject/Field.h"
 
 #define LOCTEXT_NAMESPACE "UI_Blooman"
+
+UBloomWidgetBase::UBloomWidgetBase(const FObjectInitializer& ObjectInitializer)
+    : Super(ObjectInitializer)
+{
+}
 
 int32 UBloomWidgetBase::NativePaint(const FPaintArgs& Args, const FGeometry& AllottedGeometry, const FSlateRect& MyCullingRect, FSlateWindowElementList& OutDrawElements, int32 LayerId, const FWidgetStyle& InWidgetStyle, bool bParentEnabled) const
 {
@@ -211,16 +216,43 @@ void UBloomWidgetBase::OpenSaveTextureDialog(const FString& InBasePath, bool& Is
     IsSuccess = false;
 }
 
-void UBloomWidgetBase::NotifyTexPropertyChanged()
+void UBloomWidgetBase::NotifyCreateTextureFinished()
 {
 #if WITH_EDITOR
+    // プロパティ変化をSlateに通知
     if (TexPropHandle.IsValid()) {
         const UObject* Obj(nullptr);
         if (TexPropHandle->GetValue(Obj) == FPropertyAccess::Result::Success) {
             TexPropHandle->SetValue(Obj);
         }
     }
+
+    // Outline制御の後始末が必要なら実行
+    CreateTextureCallBackForEditor.ExecuteIfBound();
+    CreateTextureCallBackForEditor.Unbind();
 #endif
+}
+
+void UBloomWidgetBase::RequestTextureCreateCommand(ETexCreateCmd Cmd)
+{
+    switch (Cmd) {
+    default: ensure(0);
+    case ETexCreateCmd::None:
+        break;
+
+    case ETexCreateCmd::CreateNew:
+        RequestCreateNewTexture();
+        break;
+
+    case ETexCreateCmd::Overwrite:
+        RequestOverwriteTexture();
+        break;
+    }
+}
+
+bool UBloomWidgetBase::HasShowOutlineFlag()
+{
+    return EnumHasAnyFlags(GetDesignerFlags(), EWidgetDesignFlags::ShowOutline);
 }
 
 #undef LOCTEXT_NAMESPACE 

@@ -1,4 +1,4 @@
-// Fill out your copyright notice in the Description page of Project Settings.
+// Copyright seiko_dev. All Rights Reserved.
 #pragma once
 
 #include "CoreMinimal.h"
@@ -13,6 +13,17 @@ class UI_BLOOMAN_API UBloomWidgetBase : public UUserWidget
 {
 	GENERATED_BODY()
 public:
+    // Editor用テクスチャ生成指示の種類
+    enum class ETexCreateCmd : uint8
+    {
+        None,
+        CreateNew,
+        Overwrite,
+    };
+
+public:
+    UBloomWidgetBase(const FObjectInitializer& ObjectInitializer);
+
     UFUNCTION(BlueprintImplementableEvent, BlueprintCosmetic, Category = "User Interface | Painting")
     void PaintPreProcess(const FGeometry& MyGeometry);
 
@@ -22,19 +33,26 @@ public:
     void OpenSaveTextureDialog(const FString& InBasePath, bool& IsSuccess, FString& Path);
 
     UFUNCTION(BlueprintCallable, Category = "Create Texture")
-    void NotifyTexPropertyChanged();
+    void NotifyCreateTextureFinished();
 
-    UFUNCTION(BlueprintImplementableEvent, BlueprintCosmetic)
+    void RequestTextureCreateCommand(ETexCreateCmd Cmd);
+
+    UFUNCTION(BlueprintImplementableEvent, BlueprintCallable, Category = "Create Texture")
     void RequestCreateNewTexture();
 
-    UFUNCTION(BlueprintImplementableEvent, BlueprintCosmetic)
+    UFUNCTION(BlueprintImplementableEvent, BlueprintCallable, Category = "Create Texture")
     void RequestOverwriteTexture();
+
+    bool HasShowOutlineFlag();
 
 public:
     UPROPERTY(BlueprintReadWrite, EditAnywhere, Category ="Settings")
     UTexture2D* BloomTexture;
 
 #if WITH_EDITOR
+    DECLARE_DELEGATE(FCreateTextureCallBackForEditor);
+    FCreateTextureCallBackForEditor CreateTextureCallBackForEditor;
+
     TSharedPtr<IPropertyHandle> TexPropHandle;
 #endif
 };

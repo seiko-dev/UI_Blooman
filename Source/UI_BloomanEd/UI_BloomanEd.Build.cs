@@ -40,7 +40,10 @@ public class UI_BloomanEd : ModuleRules
 				"Slate",
 				"SlateCore",
 
-				// ... add private dependencies that you statically link with here ...	
+				// ... add private dependencies that you statically link with here ...
+                "InputCore",
+                "UnrealEd",
+                "EditorSubsystem",
             }
             );
 		

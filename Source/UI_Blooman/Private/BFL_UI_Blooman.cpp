@@ -1,5 +1,4 @@
-// Fill out your copyright notice in the Description page of Project Settings.
-
+// Copyright seiko_dev. All Rights Reserved.
 
 #include "BFL_UI_Blooman.h"
 #include "Slate/WidgetRenderer.h"
@@ -33,19 +32,23 @@ bool UBFL_UI_Blooman::DrawWidgetToTarget(UTextureRenderTarget2D* Target,
     FWidgetRenderer* WidgetRenderer = new FWidgetRenderer(UseGamma, false);
     check(WidgetRenderer);
 
-    TSharedRef<SWidget> ref = WidgetToRender->TakeWidget();
-    WidgetRenderer->ViewOffset = DrawOffset;
-    WidgetRenderer->DrawWidget(Target, ref, DrawSize, 0.0);
-    FlushRenderingCommands();
+    EWidgetDesignFlags OrgFlag = WidgetToRender->GetDesignerFlags();
+    WidgetToRender->SetDesignerFlags(OrgFlag & (~EWidgetDesignFlags::ShowOutline));
+    {
+        WidgetRenderer->ViewOffset = DrawOffset;
+        WidgetRenderer->DrawWidget(Target, WidgetToRender->TakeWidget(), DrawSize, 0.0);
+        FlushRenderingCommands();
 
-    BeginCleanup(WidgetRenderer);
+        BeginCleanup(WidgetRenderer);
 
-    NumMips = 0;
+        NumMips = 0;
 
-    if (UpdateImmediate) {
-        Target->UpdateResourceImmediate(false);
-        NumMips = Target->GetNumMips();
+        if (UpdateImmediate) {
+            Target->UpdateResourceImmediate(false);
+            NumMips = Target->GetNumMips();
+        }
     }
+    WidgetToRender->SetDesignerFlags(OrgFlag);
 
     return true;
 }
