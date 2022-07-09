@@ -32,8 +32,6 @@ bool UBFL_UI_Blooman::DrawWidgetToTarget(UTextureRenderTarget2D* Target,
     FWidgetRenderer* WidgetRenderer = new FWidgetRenderer(UseGamma, false);
     check(WidgetRenderer);
 
-    EWidgetDesignFlags OrgFlag = WidgetToRender->GetDesignerFlags();
-    WidgetToRender->SetDesignerFlags(OrgFlag & (~EWidgetDesignFlags::ShowOutline));
     {
         WidgetRenderer->ViewOffset = DrawOffset;
         WidgetRenderer->DrawWidget(Target, WidgetToRender->TakeWidget(), DrawSize, 0.0);
@@ -48,7 +46,6 @@ bool UBFL_UI_Blooman::DrawWidgetToTarget(UTextureRenderTarget2D* Target,
             NumMips = Target->GetNumMips();
         }
     }
-    WidgetToRender->SetDesignerFlags(OrgFlag);
 
     return true;
 }

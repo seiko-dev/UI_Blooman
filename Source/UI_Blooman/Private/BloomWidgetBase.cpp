@@ -252,7 +252,11 @@ void UBloomWidgetBase::RequestTextureCreateCommand(ETexCreateCmd Cmd)
 
 bool UBloomWidgetBase::HasShowOutlineFlag()
 {
+#if WITH_EDITOR
     return EnumHasAnyFlags(GetDesignerFlags(), EWidgetDesignFlags::ShowOutline);
+#else
+    return false;
+#endif
 }
 
 #undef LOCTEXT_NAMESPACE 

@@ -26,7 +26,7 @@ void FBloomWidgetBaseCustomization::CustomizeDetails(IDetailLayoutBuilder& Detai
     {
         IDetailCategoryBuilder& SettingsCategory = DetailLayout.EditCategory("BloomSettings", 
                                                                              FText::GetEmpty(),
-                                                                             ECategoryPriority::Variable);
+                                                                             ECategoryPriority::TypeSpecific);
 
         TSharedRef<SHorizontalBox> ButtonBox = SNew(SHorizontalBox)
             + SHorizontalBox::Slot()
@@ -61,7 +61,7 @@ void FBloomWidgetBaseCustomization::CustomizeDetails(IDetailLayoutBuilder& Detai
 
         IDetailCategoryBuilder& DrawCategory = DetailLayout.EditCategory("BloomDraw",
                                                                              FText::GetEmpty(),
-                                                                             ECategoryPriority::Variable);
+                                                                             ECategoryPriority::TypeSpecific);
     }
 
     TexHandle = DetailLayout.GetProperty(GET_MEMBER_NAME_CHECKED(UBloomWidgetBase, BloomTexture));
