@@ -15,7 +15,6 @@ UPseudoBloom::UPseudoBloom(const FObjectInitializer& ObjectInitializer)
 void UPseudoBloom::ReleaseSlateResources(bool bReleaseChildren)
 {
     Super::ReleaseSlateResources(bReleaseChildren);
-    //MyBox.Reset();
     MyPseudoBloom.Reset();
 }
 
@@ -35,25 +34,10 @@ TSharedRef<SWidget> UPseudoBloom::RebuildWidget()
     if (DriverClass) {
         Driver = NewObject<UPseudoBloomDriver>(this, DriverClass, TEXT("UPseudoBloomDriver"));
         Driver->SetWidget(this);
-
-        UE_LOG(LogTemp, Log, TEXT("%s: recreate."), UTF8_TO_TCHAR(__func__) );
+        Driver->OnRebuildWidget(IsDesignTime());
     }
 
-    //MyBox = SNew(SBox);
     MyPseudoBloom = SNew(SPseudoBloom);
-
-    //if (IsDesignTime())
-    //{
-    //    MyBox->SetContent(
-    //        SNew(SBox)
-    //        .HAlign(HAlign_Center)
-    //        .VAlign(VAlign_Center)
-    //        [
-    //            SNew(STextBlock)
-    //            .Text(FText::FromName(GetFName()))
-    //        ]
-    //    );
-    //}
 
     // Add any existing content to the new slate box
     if (GetChildrenCount() > 0)
@@ -61,8 +45,7 @@ TSharedRef<SWidget> UPseudoBloom::RebuildWidget()
         UPanelSlot* ContentSlot = GetContentSlot();
         if (ContentSlot->Content)
         {
-            //MyBox->SetContent(ContentSlot->Content->TakeWidget());
-            MyPseudoBloom->SetContent(ContentSlot->Content->TakeWidget());
+            MyPseudoBloom->SetContent(ContentSlot->Content->TakeWidget(), Driver);
         }
     }
 
@@ -72,13 +55,9 @@ TSharedRef<SWidget> UPseudoBloom::RebuildWidget()
 void UPseudoBloom::OnSlotAdded(UPanelSlot* InSlot)
 {
     // Add the child to the live slot if it already exists
-    //if (MyBox.IsValid() && InSlot->Content)
-    //{
-    //    MyBox->SetContent(InSlot->Content->TakeWidget());
-    //}
     if (MyPseudoBloom.IsValid() && InSlot->Content)
     {
-        MyPseudoBloom->SetContent(InSlot->Content->TakeWidget());
+        MyPseudoBloom->SetContent(InSlot->Content->TakeWidget(), Driver);
     }
 }
 
@@ -87,20 +66,7 @@ void UPseudoBloom::OnSlotRemoved(UPanelSlot* InSlot)
     // Remove the widget from the live slot if it exists.
     if (MyPseudoBloom.IsValid())
     {
-        MyPseudoBloom->SetContent(SNullWidget::NullWidget);
-
-        //if (IsDesignTime())
-        //{
-        //    MyBox->SetContent(
-        //        SNew(SBox)
-        //        .HAlign(HAlign_Center)
-        //        .VAlign(VAlign_Center)
-        //        [
-        //            SNew(STextBlock)
-        //            .Text(FText::FromName(GetFName()))
-        //        ]
-        //    );
-        //}
+        MyPseudoBloom->SetContent(SNullWidget::NullWidget, nullptr);
     }
 }
 

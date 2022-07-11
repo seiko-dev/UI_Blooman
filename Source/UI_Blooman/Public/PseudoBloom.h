@@ -40,8 +40,11 @@ public:
     UFUNCTION(BlueprintImplementableEvent, BlueprintCosmetic, Category = "User Interface")
     void PaintPreProcess(const FGeometry& MyGeometry);
 
+    UFUNCTION(BlueprintImplementableEvent, BlueprintCosmetic, Category = "User Interface")
+    void OnRebuildWidget(bool IsDesignTime);
+
     UFUNCTION(BlueprintImplementableEvent, BlueprintCosmetic, Category = "User Interface | Painting")
-    void OnPaint(UPARAM(ref) FPaintContext& Context) const;
+    void OnPaint(UPARAM(ref) FPaintContext& Context, const FGeometry& Geometry) const;
 };
 
 /**
@@ -82,6 +85,5 @@ private:
     UPseudoBloomDriver* Driver;
 
 protected:
-    TSharedPtr<SBox> MyBox;
     TSharedPtr<class SPseudoBloom> MyPseudoBloom;
 };

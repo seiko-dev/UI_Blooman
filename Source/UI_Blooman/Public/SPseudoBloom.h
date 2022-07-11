@@ -21,8 +21,7 @@ public:
 public:
     SPseudoBloom();
     void Construct(const FArguments& InArgs);
-    void SetContent(const TSharedRef<SWidget>& InContent);
-    void SetDriver(class UPseudoBloomDriver* InDriver) { Driver = InDriver; }
+    void SetContent(const TSharedRef<SWidget>& InContent, class UPseudoBloomDriver* InDriver);
     virtual int32 OnPaint(const FPaintArgs& Args, const FGeometry& AllottedGeometry, const FSlateRect& MyCullingRect, FSlateWindowElementList& OutDrawElements, int32 LayerId, const FWidgetStyle& InWidgetStyle, bool bParentEnabled) const override;
 
 private:
