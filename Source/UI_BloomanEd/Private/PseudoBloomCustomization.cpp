@@ -26,7 +26,7 @@ void FPseudoBloomCustomization::CustomizeDetails(IDetailLayoutBuilder& DetailLay
                                                                          FText::GetEmpty(),
                                                                          ECategoryPriority::TypeSpecific);
 
-    SettingsCategory.AddProperty(GET_MEMBER_NAME_CHECKED(UPseudoBloom, BuildParameter));
+   // SettingsCategory.AddProperty(GET_MEMBER_NAME_CHECKED(UPseudoBloom, BuildParameter));
 //    UPseudoBloomDriver* Drviver(nullptr);
 
     for (int32 ObjectIndex = 0; ObjectIndex < SelectedObjects.Num(); ++ObjectIndex)

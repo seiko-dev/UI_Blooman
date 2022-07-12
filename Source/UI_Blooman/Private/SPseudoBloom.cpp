@@ -34,7 +34,7 @@ int32 SPseudoBloom::OnPaint(const FPaintArgs& Args, const FGeometry& AllottedGeo
 
     // 上にBloomを描く
     if (Driver) {
-        const_cast<SPseudoBloom*>(this)->Driver->PaintPreProcess(AllottedGeometry);
+        const_cast<SPseudoBloom*>(this)->Driver->OnPaintPreProcess(AllottedGeometry);
 
         FPaintContext Context(AllottedGeometry, MyCullingRect, OutDrawElements, LayerId, InWidgetStyle, bParentEnabled);
         Driver->OnPaint(Context, AllottedGeometry);

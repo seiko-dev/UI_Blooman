@@ -12,6 +12,29 @@ UPseudoBloom::UPseudoBloom(const FObjectInitializer& ObjectInitializer)
     Visibility = ESlateVisibility::SelfHitTestInvisible;
 }
 
+UWidget* UPseudoBloom::GetChildContent() const
+{
+    return GetContentSlot()->Content;
+}
+
+
+void UPseudoBloom::PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent)
+{
+    Super::PostEditChangeProperty(PropertyChangedEvent);
+
+    if (PropertyChangedEvent.ChangeType != EPropertyChangeType::Interactive)
+    {
+        TSharedPtr<SWidget> SafeWidget = GetCachedWidget();
+        if (SafeWidget.IsValid())
+        {
+            // プロパティ変えたら再構築
+            if (Driver) {
+                Driver->OnRebuild();
+            }
+        }
+    }
+}
+
 void UPseudoBloom::ReleaseSlateResources(bool bReleaseChildren)
 {
     Super::ReleaseSlateResources(bReleaseChildren);
@@ -34,7 +57,7 @@ TSharedRef<SWidget> UPseudoBloom::RebuildWidget()
     if (DriverClass) {
         Driver = NewObject<UPseudoBloomDriver>(this, DriverClass, TEXT("UPseudoBloomDriver"));
         Driver->SetWidget(this);
-        Driver->OnRebuildWidget(IsDesignTime());
+        Driver->OnRebuild();
     }
 
     MyPseudoBloom = SNew(SPseudoBloom);
