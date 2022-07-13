@@ -13,13 +13,6 @@ class UI_BLOOMAN_API UBloomWidgetBase : public UUserWidget
 {
 	GENERATED_BODY()
 public:
-    // Editor用テクスチャ生成指示の種類
-    enum class ETexCreateCmd : uint8
-    {
-        None,
-        CreateNew,
-        Overwrite,
-    };
 
 public:
     UBloomWidgetBase(const FObjectInitializer& ObjectInitializer);
@@ -35,8 +28,6 @@ public:
     UFUNCTION(BlueprintCallable, Category = "Create Texture")
     void NotifyCreateTextureFinished();
 
-    void RequestTextureCreateCommand(ETexCreateCmd Cmd);
-
     UFUNCTION(BlueprintImplementableEvent, BlueprintCallable, Category = "Create Texture")
     void RequestCreateNewTexture();
 
@@ -44,6 +35,11 @@ public:
     void RequestOverwriteTexture();
 
     bool HasShowOutlineFlag();
+
+#if WITH_EDITOR
+    void RequestTextureCreateCommand(uint8 Cmd);
+#endif
+
 
 public:
     UPROPERTY(BlueprintReadWrite, EditAnywhere, Category ="BloomDraw")

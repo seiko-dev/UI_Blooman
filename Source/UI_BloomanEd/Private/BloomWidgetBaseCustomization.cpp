@@ -142,7 +142,7 @@ void FBloomWidgetBaseCustomization::TriggerCreateTextureCommand()
     if (UUI_BloomanEdSubsystem* SubSys = GEditor->GetEditorSubsystem<UUI_BloomanEdSubsystem>()) {
         const auto Cmd = SubSys->GetTextureCreateCommand();
 
-        if (Cmd == UBloomWidgetBase::ETexCreateCmd::None) {
+        if (Cmd == UUI_BloomanEdSubsystem::ETexCreateCmd::None) {
             return;
         }
 
@@ -151,7 +151,7 @@ void FBloomWidgetBaseCustomization::TriggerCreateTextureCommand()
 
             if (UBloomWidgetBase* Widget = Cast<UBloomWidgetBase>(Obj.Get())) {
                 Widget->TexPropHandle = TexHandle;
-                Widget->RequestTextureCreateCommand(Cmd);
+                Widget->RequestTextureCreateCommand((uint8)Cmd);
                 UE_LOG(LogTemp, Log, TEXT("%s: requested."), UTF8_TO_TCHAR(__func__));
 
                 // 自動Outline消しが発動していたら、全員の作業後に元に戻す予約
@@ -163,7 +163,7 @@ void FBloomWidgetBaseCustomization::TriggerCreateTextureCommand()
         }
 
         // 各Widgetに指示出しは終わったのでSubsystemへの予約は解除
-        SubSys->SetTextureCreateCommand(UBloomWidgetBase::ETexCreateCmd::None);
+        SubSys->SetTextureCreateCommand(UUI_BloomanEdSubsystem::ETexCreateCmd::None);
         SubSys->SetRequestRestoreShowOutline(false);
     }
 }
@@ -229,7 +229,7 @@ FReply FBloomWidgetBaseCustomization::OnCreateNewTextureClicked()
     // アウトライン非表示にするためにWidgetが再構築されるので、
     // Subsystemに予約して命令を遅延する
     if (UUI_BloomanEdSubsystem* SubSys = GEditor->GetEditorSubsystem<UUI_BloomanEdSubsystem>()) {
-        SubSys->SetTextureCreateCommand(UBloomWidgetBase::ETexCreateCmd::CreateNew);
+        SubSys->SetTextureCreateCommand(UUI_BloomanEdSubsystem::ETexCreateCmd::CreateNew);
     }
 
     if (!HideOutline()) {
@@ -243,7 +243,7 @@ FReply FBloomWidgetBaseCustomization::OnCreateNewTextureClicked()
 FReply FBloomWidgetBaseCustomization::OnOverwriteTextureClicked()
 {
     if (UUI_BloomanEdSubsystem* SubSys = GEditor->GetEditorSubsystem<UUI_BloomanEdSubsystem>()) {
-        SubSys->SetTextureCreateCommand(UBloomWidgetBase::ETexCreateCmd::Overwrite);
+        SubSys->SetTextureCreateCommand(UUI_BloomanEdSubsystem::ETexCreateCmd::Overwrite);
     }
 
     if (!HideOutline()) {

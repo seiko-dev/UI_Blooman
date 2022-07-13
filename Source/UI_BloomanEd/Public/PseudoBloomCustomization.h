@@ -29,8 +29,8 @@ private:
     TSharedPtr<SWidget> SearchNearestChildDesignerView(TSharedPtr<SWidget> CurrentWidget);
 
 private:
-    TSharedPtr<IPropertyHandle> TexHandle;
+    TSharedPtr<IPropertyHandle> DrawParamHandle;
     TArray<TWeakObjectPtr<UObject>> SelectedObjects;
-    TSharedPtr<class SWidget> DesinerView;
+    TSharedPtr<class SWidget> DesignerView;
     int32_t RestoreOutlineCounter;
 };

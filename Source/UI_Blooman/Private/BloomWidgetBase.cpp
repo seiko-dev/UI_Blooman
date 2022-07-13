@@ -233,22 +233,24 @@ void UBloomWidgetBase::NotifyCreateTextureFinished()
 #endif
 }
 
-void UBloomWidgetBase::RequestTextureCreateCommand(ETexCreateCmd Cmd)
+#if WITH_EDITOR
+void UBloomWidgetBase::RequestTextureCreateCommand(uint8 Cmd)
 {
     switch (Cmd) {
     default: ensure(0);
-    case ETexCreateCmd::None:
+    case 0:
         break;
 
-    case ETexCreateCmd::CreateNew:
+    case 1:
         RequestCreateNewTexture();
         break;
 
-    case ETexCreateCmd::Overwrite:
+    case 2:
         RequestOverwriteTexture();
         break;
     }
 }
+#endif
 
 bool UBloomWidgetBase::HasShowOutlineFlag()
 {

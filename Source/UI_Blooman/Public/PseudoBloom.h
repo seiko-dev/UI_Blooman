@@ -13,7 +13,7 @@ struct UI_BLOOMAN_API FUI_BloomBuildParameter
     GENERATED_BODY()
 public:
     FUI_BloomBuildParameter()
-        : Overhang(10.0f)
+        : Overhang(16.0f)
         , AlphaToLuminance(1.0f)
         , LuminanceThreshold(0.0f)
         , Strength(1.0f)
@@ -87,6 +87,15 @@ public:
     UFUNCTION(BlueprintImplementableEvent, BlueprintCosmetic, Category = "User Interface | Painting")
     void OnPaint(UPARAM(ref) FPaintContext& Context, const FGeometry& Geometry) const;
 
+    UFUNCTION(BlueprintImplementableEvent, BlueprintCosmetic, Category = "Create Texture")
+    void RequestCreateNewTexture(const FString& Path);
+
+    UFUNCTION(BlueprintImplementableEvent, BlueprintCosmetic, Category = "Create Texture")
+    void RequestOverwriteTexture();
+
+    UFUNCTION(BlueprintCallable, Category = "Create Texture")
+    void NotifyCreateTextureFinished();
+
 private:
     virtual class UWorld* GetWorld() const
     {
@@ -111,7 +120,6 @@ class UI_BLOOMAN_API UPseudoBloom : public UContentWidget
 public:
     UPseudoBloom(const FObjectInitializer& ObjectInitializer);
 
-
     UFUNCTION(BlueprintCallable)
     UWidget* GetChildContent() const;
 
@@ -122,15 +130,31 @@ public:
     UPROPERTY(BlueprintReadWrite, EditAnywhere)
     FUI_BloomDrawParameter DrawParameter;
 
-    UPROPERTY(BlueprintReadWrite, EditAnywhere, NoClear)
+    UPROPERTY(BlueprintReadWrite, EditAnywhere, NoClear, AdvancedDisplay)
     TSubclassOf<UPseudoBloomDriver> DriverClass;
 
 
+#if WITH_EDITOR
+    DECLARE_DELEGATE(FCreateTextureCallBack);
+    FCreateTextureCallBack CreateTextureCallBack;
+
+    TSharedPtr<IPropertyHandle> DrawParamHandle;
+#endif
+
+public:
+    // UObjetct interface
     virtual void PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent) override;
+
+    // UPanelWidget interface
     virtual void ReleaseSlateResources(bool bReleaseChildren) override;
 
 #if WITH_EDITOR
+    /** UWidget interface */
     virtual const FText GetPaletteCategory() override;
+
+    void RequestCreateNewTexture(const FString& Path);
+    void RequestOverwriteTexture();
+    void NotifyCreateTextureFinished();
 #endif
 
 protected:
@@ -140,6 +164,8 @@ protected:
     /** UPanelWidget interface */
     virtual void OnSlotAdded(UPanelSlot* InSlot) override;
     virtual void OnSlotRemoved(UPanelSlot* InSlot) override;
+
+    UPseudoBloomDriver* GetDriver();
 
 private:
     UPROPERTY()

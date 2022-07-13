@@ -5,6 +5,15 @@
 
 #define LOCTEXT_NAMESPACE "UI_BLOOMAN"
 
+// Editor用テクスチャ生成処理終了時の呼出
+void UPseudoBloomDriver::NotifyCreateTextureFinished()
+{
+#if WITH_EDITOR
+    Widget->NotifyCreateTextureFinished();
+#endif
+}
+
+
 UPseudoBloom::UPseudoBloom(const FObjectInitializer& ObjectInitializer)
     : Super(ObjectInitializer)
 {
@@ -17,7 +26,6 @@ UWidget* UPseudoBloom::GetChildContent() const
     return GetContentSlot()->Content;
 }
 
-
 void UPseudoBloom::PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent)
 {
     Super::PostEditChangeProperty(PropertyChangedEvent);
@@ -28,9 +36,7 @@ void UPseudoBloom::PostEditChangeProperty(FPropertyChangedEvent& PropertyChanged
         if (SafeWidget.IsValid())
         {
             // プロパティ変えたら再構築
-            if (Driver) {
-                Driver->OnRebuild();
-            }
+            GetDriver()->OnRebuild();
         }
     }
 }
@@ -46,19 +52,40 @@ const FText UPseudoBloom::GetPaletteCategory()
 {
     return LOCTEXT("SpecialFX", "Special Effects");
 }
+
+void UPseudoBloom::RequestCreateNewTexture(const FString& Path)
+{
+    // 同じインスタンスに対して、RebuildWidgetより先に来てしまうのでここでDriverを作る場合もある
+    GetDriver()->RequestCreateNewTexture(Path);
+}
+
+void UPseudoBloom::RequestOverwriteTexture()
+{
+    // 同じインスタンスに対して、RebuildWidgetより先に来てしまうのでここでDriverを作る場合もある
+    GetDriver()->RequestOverwriteTexture();
+}
+
+void UPseudoBloom::NotifyCreateTextureFinished()
+{
+    // プロパティ変化をSlateに通知
+    if (DrawParamHandle.IsValid()) {
+        UObject* Prop(nullptr);
+        if (DrawParamHandle->GetValue(Prop) == FPropertyAccess::Result::Success) {
+            DrawParamHandle->SetValue(Prop);
+        } else {
+            UE_LOG(LogTemp, Log, TEXT("%s: valueget failed."), UTF8_TO_TCHAR(__func__) );
+        }
+    }
+
+    // DetailsCustomizationが何かBindしてるかもしれないので通知(Outline制御の後始末とか
+    CreateTextureCallBack.ExecuteIfBound();
+    CreateTextureCallBack.Unbind();
+}
 #endif
 
 TSharedRef<SWidget> UPseudoBloom::RebuildWidget()
 {
-    if (!DriverClass) {
-        FString Path = "/UI_Blooman/B_PseudoBloomDriver.B_PseudoBloomDriver_C";
-        DriverClass = TSoftClassPtr<UPseudoBloomDriver>(FSoftObjectPath(*Path)).LoadSynchronous();
-    }
-    if (DriverClass) {
-        Driver = NewObject<UPseudoBloomDriver>(this, DriverClass, TEXT("UPseudoBloomDriver"));
-        Driver->SetWidget(this);
-        Driver->OnRebuild();
-    }
+    GetDriver()->OnRebuild();
 
     MyPseudoBloom = SNew(SPseudoBloom);
 
@@ -91,6 +118,21 @@ void UPseudoBloom::OnSlotRemoved(UPanelSlot* InSlot)
     {
         MyPseudoBloom->SetContent(SNullWidget::NullWidget, nullptr);
     }
+}
+
+UPseudoBloomDriver* UPseudoBloom::GetDriver()
+{
+    if (!Driver) {
+        if (!DriverClass) {
+            FString Path = "/UI_Blooman/B_PseudoBloomDriver.B_PseudoBloomDriver_C";
+            DriverClass = TSoftClassPtr<UPseudoBloomDriver>(FSoftObjectPath(*Path)).LoadSynchronous();
+        }
+        if (DriverClass) {
+            Driver = NewObject<UPseudoBloomDriver>(this, DriverClass, TEXT("UPseudoBloomDriver"));
+            Driver->SetWidget(this);
+        }
+    }
+    return Driver;
 }
 
 #undef LOCTEXT_NAMESPACE
