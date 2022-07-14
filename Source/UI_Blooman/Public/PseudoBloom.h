@@ -23,25 +23,25 @@ public:
     {
     }
 
-    UPROPERTY(BlueprintReadWrite, EditAnywhere)
+    UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Build")
     float Overhang;
 
-    UPROPERTY(BlueprintReadWrite, EditAnywhere, meta = (ClampMin = "0.0", ClampMax = "1.0", UIMin = "0.0", UIMax = "1.0"))
+    UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Build", meta = (ClampMin = "0.0", ClampMax = "1.0", UIMin = "0.0", UIMax = "1.0"))
     float AlphaToLuminance;
 
-    UPROPERTY(BlueprintReadWrite, EditAnywhere, meta = (ClampMin = "0.0", ClampMax = "1.0", UIMin = "0.0", UIMax = "1.0"))
+    UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Build", meta = (ClampMin = "0.0", ClampMax = "1.0", UIMin = "0.0", UIMax = "1.0"))
     float LuminanceThreshold;
 
-    UPROPERTY(BlueprintReadWrite, EditAnywhere)
+    UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Build")
     float Strength;
 
-    UPROPERTY(BlueprintReadWrite, EditAnywhere)
+    UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Build")
     float Spead;
 
-    UPROPERTY(BlueprintReadWrite, EditAnywhere, meta = (ClampMin = "1", UIMin = "1"))
+    UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Build", meta = (ClampMin = "1", UIMin = "1"))
     int32 MaxMipLevel;
 
-    UPROPERTY(BlueprintReadWrite, EditAnywhere)
+    UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Build")
     bool BuildEveryFrame;
 };
 
@@ -56,13 +56,13 @@ public:
     {
     }
 
-    UPROPERTY(BlueprintReadWrite, EditAnywhere)
+    UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Draw")
     FLinearColor TintColor;
 
-    UPROPERTY(BlueprintReadWrite, EditAnywhere)
+    UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Draw")
     FVector2D SizeScale;
 
-    UPROPERTY(BlueprintReadWrite, EditAnywhere)
+    UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Draw")
     UTexture2D* BloomTexture;
 };
 
@@ -71,7 +71,7 @@ class UI_BLOOMAN_API UPseudoBloomDriver : public UObject
 {
     GENERATED_BODY()
 public:
-    UPROPERTY(BlueprintReadOnly)
+    UPROPERTY(BlueprintReadOnly, Category = "PseudoBloom")
     UPseudoBloom* Widget;
 
     void SetWidget(UPseudoBloom* InWidget) {
@@ -120,17 +120,17 @@ class UI_BLOOMAN_API UPseudoBloom : public UContentWidget
 public:
     UPseudoBloom(const FObjectInitializer& ObjectInitializer);
 
-    UFUNCTION(BlueprintCallable)
+    UFUNCTION(BlueprintCallable, Category = "PseudoBloom")
     UWidget* GetChildContent() const;
 
 public:
-    UPROPERTY(BlueprintReadWrite, EditAnywhere)
+    UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "PseudoBloom")
     FUI_BloomBuildParameter BuildParameter;
 
-    UPROPERTY(BlueprintReadWrite, EditAnywhere)
+    UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "PseudoBloom")
     FUI_BloomDrawParameter DrawParameter;
 
-    UPROPERTY(BlueprintReadWrite, EditAnywhere, NoClear, AdvancedDisplay)
+    UPROPERTY(BlueprintReadWrite, EditAnywhere, NoClear, AdvancedDisplay, Category = "PseudoBloom")
     TSubclassOf<UPseudoBloomDriver> DriverClass;
 
 
@@ -142,13 +142,13 @@ public:
 #endif
 
 public:
-    // UObjetct interface
-    virtual void PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent) override;
-
     // UPanelWidget interface
     virtual void ReleaseSlateResources(bool bReleaseChildren) override;
 
 #if WITH_EDITOR
+    // UObject interface
+    virtual void PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent) override;
+
     // UWidget interface
     virtual const FText GetPaletteCategory() override;
 

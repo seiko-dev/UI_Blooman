@@ -26,6 +26,13 @@ UWidget* UPseudoBloom::GetChildContent() const
     return GetContentSlot()->Content;
 }
 
+void UPseudoBloom::ReleaseSlateResources(bool bReleaseChildren)
+{
+    Super::ReleaseSlateResources(bReleaseChildren);
+    MyPseudoBloom.Reset();
+}
+
+#if WITH_EDITOR
 void UPseudoBloom::PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent)
 {
     Super::PostEditChangeProperty(PropertyChangedEvent);
@@ -41,13 +48,6 @@ void UPseudoBloom::PostEditChangeProperty(FPropertyChangedEvent& PropertyChanged
     }
 }
 
-void UPseudoBloom::ReleaseSlateResources(bool bReleaseChildren)
-{
-    Super::ReleaseSlateResources(bReleaseChildren);
-    MyPseudoBloom.Reset();
-}
-
-#if WITH_EDITOR
 const FText UPseudoBloom::GetPaletteCategory()
 {
     return LOCTEXT("SpecialFX", "Special Effects");
