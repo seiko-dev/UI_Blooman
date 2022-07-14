@@ -2,4 +2,4 @@ blank_issues_enabled: true
 contact_links:
   - name: Issue
     about: Issue template
-    url: https://github.com/seiko-dev/UI_Blooman/issues/new?template=issue.md&projects=https://github.com/users/seiko-dev/projects/1/
+    url: https://github.com/seiko-dev/UI_Blooman/issues/new?template=issue.md&projects=seiko-dev/1
