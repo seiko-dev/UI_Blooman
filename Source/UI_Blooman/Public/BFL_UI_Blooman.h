@@ -24,7 +24,7 @@ public:
                                    bool UpdateImmediate,
                                    int32& NumMips);
 
-    UFUNCTION(Category = "UMG", BlueprintCallable)
+    UFUNCTION(Category = "Painting", BlueprintCallable)
     static void DrawSlateBrush(UPARAM(ref) FPaintContext& Context, 
                                FVector2D Position, 
                                FVector2D Size,

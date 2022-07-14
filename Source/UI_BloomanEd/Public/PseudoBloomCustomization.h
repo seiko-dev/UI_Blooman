@@ -4,10 +4,10 @@
 
 #include "IDetailCustomization.h"
 
-class FBloomWidgetBaseCustomization : public IDetailCustomization
+class FPseudoBloomCustomization : public IDetailCustomization
 {
 public:
-    FBloomWidgetBaseCustomization();
+    FPseudoBloomCustomization();
 
     // Makes a new instance of this detail layout class for a specific detail view requesting it
     static TSharedRef<IDetailCustomization> MakeInstance();
@@ -29,8 +29,8 @@ private:
     TSharedPtr<SWidget> SearchNearestChildDesignerView(TSharedPtr<SWidget> CurrentWidget);
 
 private:
-    TSharedPtr<IPropertyHandle> TexHandle;
+    TSharedPtr<IPropertyHandle> DrawParamHandle;
     TArray<TWeakObjectPtr<UObject>> SelectedObjects;
-    TSharedPtr<class SWidget> DesinerView;
+    TSharedPtr<class SWidget> DesignerView;
     int32_t RestoreOutlineCounter;
 };

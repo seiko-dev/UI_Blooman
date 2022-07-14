@@ -5,6 +5,12 @@ void UUI_BloomanEdSubsystem::Initialize(FSubsystemCollectionBase& Collection)
 {
     Super::Initialize(Collection);
 
-    TextureCreateCommand = UBloomWidgetBase::ETexCreateCmd::None;
+    Reset();
+}
+
+void UUI_BloomanEdSubsystem::Reset()
+{
+    TextureCreateCommand = ETexCreateCmd::None;
     bNeedRestoreShowOutline = false;
+    SavePath.Empty();
 }
