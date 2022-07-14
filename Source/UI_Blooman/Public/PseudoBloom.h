@@ -149,7 +149,7 @@ public:
     virtual void ReleaseSlateResources(bool bReleaseChildren) override;
 
 #if WITH_EDITOR
-    /** UWidget interface */
+    // UWidget interface
     virtual const FText GetPaletteCategory() override;
 
     void RequestCreateNewTexture(const FString& Path);
@@ -158,10 +158,10 @@ public:
 #endif
 
 protected:
-    /** UWidget interface */
+    // UWidget interface 
     virtual TSharedRef<SWidget> RebuildWidget() override;
 
-    /** UPanelWidget interface */
+    // UPanelWidget interface
     virtual void OnSlotAdded(UPanelSlot* InSlot) override;
     virtual void OnSlotRemoved(UPanelSlot* InSlot) override;
 
