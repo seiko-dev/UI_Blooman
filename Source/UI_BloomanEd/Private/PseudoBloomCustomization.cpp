@@ -219,7 +219,7 @@ void FPseudoBloomCustomization::CustomizeDetails(IDetailLayoutBuilder& DetailLay
                 ButtonBox
             ];
 
-        BuildCategory.AddProperty(DetailLayout.GetProperty(GET_MEMBER_NAME_CHECKED(UPseudoBloom, PaintParameter)));
+        BuildCategory.AddProperty(DetailLayout.GetProperty(GET_MEMBER_NAME_CHECKED(UPseudoBloom, DrawParameter)));
 
     }
 
@@ -235,7 +235,7 @@ void FPseudoBloomCustomization::CustomizeDetails(IDetailLayoutBuilder& DetailLay
     }
 
     // 
-    PaintTexHandle = DetailLayout.GetProperty(GET_MEMBER_NAME_CHECKED(UPseudoBloom, PaintParameter.BloomTexture));
+    DrawParamHandle = DetailLayout.GetProperty(GET_MEMBER_NAME_CHECKED(UPseudoBloom, DrawParameter.BloomTexture));
     SelectedObjects = DetailLayout.GetSelectedObjects();
 
     // 遅延されていた命令があるなら、ここで実行
@@ -326,7 +326,7 @@ void FPseudoBloomCustomization::TriggerCreateTextureCommand()
         UPseudoBloom* Widget = Cast<UPseudoBloom>(Obj.Get());
         if (!Widget) continue;
 
-        Widget->PaintTexHandle = PaintTexHandle;
+        Widget->DrawParamHandle = DrawParamHandle;
 
         switch (Cmd) {
         case UUI_BloomanEdSubsystem::ETexCreateCmd::CreateNew:
