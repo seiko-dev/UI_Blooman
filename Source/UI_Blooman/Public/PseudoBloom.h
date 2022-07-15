@@ -19,6 +19,7 @@ public:
         , Strength(1.0f)
         , Spead(1.0f)
         , MaxMipLevel(5)
+        , Compression(1)
         , BuildEveryFrame(false)
     {
     }
@@ -41,28 +42,32 @@ public:
     UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Build", meta = (ClampMin = "1", UIMin = "1"))
     int32 MaxMipLevel;
 
+    // Free SizeでTexture保存できるようになるまで0は封印
+    UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Build", meta = (ClampMin = "1", UIMin = "1"))
+    int32 Compression;
+
     UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Build")
     bool BuildEveryFrame;
 };
 
 USTRUCT(Blueprintable)
-struct UI_BLOOMAN_API FUI_BloomDrawParameter
+struct UI_BLOOMAN_API FUI_BloomPaintParameter
 {
     GENERATED_BODY()
 public:
-    FUI_BloomDrawParameter()
+    FUI_BloomPaintParameter()
         : TintColor(FLinearColor::White)
         , SizeScale(1.0f, 1.0f)
     {
     }
 
-    UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Draw")
+    UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Paint")
     FLinearColor TintColor;
 
-    UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Draw")
+    UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Paint")
     FVector2D SizeScale;
 
-    UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Draw")
+    UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Paint")
     UTexture2D* BloomTexture;
 };
 
@@ -71,7 +76,7 @@ class UI_BLOOMAN_API UPseudoBloomDriver : public UObject
 {
     GENERATED_BODY()
 public:
-    UPROPERTY(BlueprintReadOnly, Category = "PseudoBloom")
+    UPROPERTY(BlueprintReadOnly, Category = "Pseudo Bloom")
     UPseudoBloom* Widget;
 
     void SetWidget(UPseudoBloom* InWidget) {
@@ -120,17 +125,17 @@ class UI_BLOOMAN_API UPseudoBloom : public UContentWidget
 public:
     UPseudoBloom(const FObjectInitializer& ObjectInitializer);
 
-    UFUNCTION(BlueprintCallable, Category = "PseudoBloom")
+    UFUNCTION(BlueprintCallable, Category = "Pseudo Bloom")
     UWidget* GetChildContent() const;
 
 public:
-    UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "PseudoBloom")
+    UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Pseudo Bloom")
     FUI_BloomBuildParameter BuildParameter;
 
-    UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "PseudoBloom")
-    FUI_BloomDrawParameter DrawParameter;
+    UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Pseudo Bloom")
+    FUI_BloomPaintParameter PaintParameter;
 
-    UPROPERTY(BlueprintReadWrite, EditAnywhere, NoClear, AdvancedDisplay, Category = "PseudoBloom")
+    UPROPERTY(BlueprintReadWrite, EditAnywhere, NoClear, AdvancedDisplay, Category = "Pseudo Bloom")
     TSubclassOf<UPseudoBloomDriver> DriverClass;
 
 
@@ -138,7 +143,7 @@ public:
     DECLARE_DELEGATE(FCreateTextureCallBack);
     FCreateTextureCallBack CreateTextureCallBack;
 
-    TSharedPtr<IPropertyHandle> DrawParamHandle;
+    TSharedPtr<IPropertyHandle> PaintTexHandle;
 #endif
 
 public:

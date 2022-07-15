@@ -29,7 +29,7 @@ private:
     TSharedPtr<SWidget> SearchNearestChildDesignerView(TSharedPtr<SWidget> CurrentWidget);
 
 private:
-    TSharedPtr<IPropertyHandle> DrawParamHandle;
+    TSharedPtr<IPropertyHandle> PaintTexHandle;
     TArray<TWeakObjectPtr<UObject>> SelectedObjects;
     TSharedPtr<class SWidget> DesignerView;
     int32_t RestoreOutlineCounter;
