@@ -135,4 +135,13 @@ UPseudoBloomDriver* UPseudoBloom::GetDriver()
     return Driver;
 }
 
+bool UPseudoBloom::IsDesignTime() const
+{
+#if WITH_EDITOR
+    return UWidget::IsDesignTime();
+#else
+    return false;
+#endif
+}
+
 #undef LOCTEXT_NAMESPACE
