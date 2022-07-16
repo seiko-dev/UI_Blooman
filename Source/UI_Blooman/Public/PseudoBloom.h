@@ -123,6 +123,9 @@ public:
     UFUNCTION(BlueprintCallable, Category = "PseudoBloom")
     UWidget* GetChildContent() const;
 
+    UFUNCTION(BlueprintCallable, Category = "PseudoBloom")
+    UPseudoBloomDriver* GetDriver() const { return Driver; }
+
 public:
     UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "PseudoBloom")
     FUI_BloomBuildParameter BuildParameter;
