@@ -68,6 +68,9 @@ public:
     FVector2D SizeScale;
 
     UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Paint")
+    bool bUseTexture;
+
+    UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Paint", meta = (EditCondition = "bUseTexture"))
     UTexture2D* BloomTexture;
 };
 
@@ -141,6 +144,9 @@ public:
     UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Pseudo Bloom")
     FUI_BloomPaintParameter PaintParameter;
 
+    //UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Paint")
+    //    UTexture2D* sampleTexture;
+
     UPROPERTY(BlueprintReadWrite, EditAnywhere, NoClear, AdvancedDisplay, Category = "Pseudo Bloom")
     TSubclassOf<UPseudoBloomDriver> DriverClass;
 
@@ -149,7 +155,7 @@ public:
     DECLARE_DELEGATE(FCreateTextureCallBack);
     FCreateTextureCallBack CreateTextureCallBack;
 
-    TSharedPtr<IPropertyHandle> PaintTexHandle;
+    TSharedPtr<IPropertyHandle> PaintParamHandle;
 #endif
 
 public:

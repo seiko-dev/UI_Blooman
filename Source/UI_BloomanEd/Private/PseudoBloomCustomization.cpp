@@ -11,6 +11,7 @@
 #include "ContentBrowserModule.h"
 #include "IContentBrowserSingleton.h"
 #include "MainFrame/Public/Interfaces/IMainFrameModule.h"
+#include "IDetailGroup.h"
 
 #define LOCTEXT_NAMESPACE "UI_BloomanEd"
 
@@ -187,13 +188,13 @@ TSharedRef<IDetailCustomization> FPseudoBloomCustomization::MakeInstance()
 
 void FPseudoBloomCustomization::CustomizeDetails(IDetailLayoutBuilder& DetailLayout)
 {
-    IDetailCategoryBuilder& BuildCategory = DetailLayout.EditCategory(TEXT("PseudoBloom"),
-                                                                      FText::GetEmpty(),
-                                                                      ECategoryPriority::TypeSpecific);
-
     // UI構築
+    IDetailCategoryBuilder& Category = DetailLayout.EditCategory(TEXT("Pseudo Bloom"),
+                                                                    FText::GetEmpty(),
+                                                                    ECategoryPriority::TypeSpecific);
+    // Build
     {
-        BuildCategory.AddProperty(DetailLayout.GetProperty(GET_MEMBER_NAME_CHECKED(UPseudoBloom, BuildParameter)));
+        Category.AddProperty(DetailLayout.GetProperty(GET_MEMBER_NAME_CHECKED(UPseudoBloom, BuildParameter)));
 
         TSharedRef<SHorizontalBox> ButtonBox = SNew(SHorizontalBox)
             + SHorizontalBox::Slot()
@@ -204,7 +205,7 @@ void FPseudoBloomCustomization::CustomizeDetails(IDetailLayoutBuilder& DetailLay
                 .Text(FText::FromString(TEXT("Create New Texture")))
             .OnClicked(this, &FPseudoBloomCustomization::OnCreateNewTextureClicked)
             ]
-            + SHorizontalBox::Slot()
+        + SHorizontalBox::Slot()
             .AutoWidth()
             .VAlign(VAlign_Center)
             [
@@ -213,14 +214,41 @@ void FPseudoBloomCustomization::CustomizeDetails(IDetailLayoutBuilder& DetailLay
             .OnClicked(this, &FPseudoBloomCustomization::OnOverwriteTextureClicked)
             ];
 
-        FDetailWidgetRow& ButtonRow = BuildCategory.AddCustomRow(FText::GetEmpty());
+        FDetailWidgetRow& ButtonRow = Category.AddCustomRow(FText::GetEmpty());
         ButtonRow.WholeRowContent()
             [
                 ButtonBox
             ];
+    }
 
-        BuildCategory.AddProperty(DetailLayout.GetProperty(GET_MEMBER_NAME_CHECKED(UPseudoBloom, PaintParameter)));
+    // Paint
+    {
+        // 「プロパティ活性化チェックボックス + プロパティ実体」のセット。
+        // なんかもっと簡単に作れそうだけど…
+        Category.AddProperty(DetailLayout.GetProperty(GET_MEMBER_NAME_CHECKED(UPseudoBloom, PaintParameter.bUseTexture))).CustomWidget()
+        .NameContent()
+        [
+            SNew(SHorizontalBox)
+            + SHorizontalBox::Slot()
+            [
+                DetailLayout.GetProperty(GET_MEMBER_NAME_CHECKED(UPseudoBloom, PaintParameter.bUseTexture))->CreatePropertyValueWidget()
+            ]
+            + SHorizontalBox::Slot()
+            .Padding(4, 0)
+            .AutoWidth()
+            [
+                DetailLayout.GetProperty(GET_MEMBER_NAME_CHECKED(UPseudoBloom, PaintParameter.bUseTexture))->CreatePropertyNameWidget()
+            ]
+        ]
+        .ValueContent()
+        .VAlign(VAlign_Center)
+        [
+            DetailLayout.GetProperty(GET_MEMBER_NAME_CHECKED(UPseudoBloom, PaintParameter.BloomTexture))->CreatePropertyValueWidget()
+        ];
+        DetailLayout.HideProperty(DetailLayout.GetProperty(GET_MEMBER_NAME_CHECKED(UPseudoBloom, PaintParameter.BloomTexture)));
 
+        // 残りのプロパティを追加
+        Category.AddProperty(DetailLayout.GetProperty(GET_MEMBER_NAME_CHECKED(UPseudoBloom, PaintParameter)));
     }
 
     // Outline消しショトカ用にDesignerViewを探しておく
@@ -235,7 +263,7 @@ void FPseudoBloomCustomization::CustomizeDetails(IDetailLayoutBuilder& DetailLay
     }
 
     // 
-    PaintTexHandle = DetailLayout.GetProperty(GET_MEMBER_NAME_CHECKED(UPseudoBloom, PaintParameter.BloomTexture));
+    PaintParamHandle = DetailLayout.GetProperty(GET_MEMBER_NAME_CHECKED(UPseudoBloom, PaintParameter));
     SelectedObjects = DetailLayout.GetSelectedObjects();
 
     // 遅延されていた命令があるなら、ここで実行
@@ -326,7 +354,7 @@ void FPseudoBloomCustomization::TriggerCreateTextureCommand()
         UPseudoBloom* Widget = Cast<UPseudoBloom>(Obj.Get());
         if (!Widget) continue;
 
-        Widget->PaintTexHandle = PaintTexHandle;
+        Widget->PaintParamHandle = PaintParamHandle;
 
         switch (Cmd) {
         case UUI_BloomanEdSubsystem::ETexCreateCmd::CreateNew:
