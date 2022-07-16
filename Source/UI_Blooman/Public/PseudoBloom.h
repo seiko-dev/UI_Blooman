@@ -131,6 +131,9 @@ public:
     UFUNCTION(BlueprintCallable, Category = "Pseudo Bloom")
     UPseudoBloomDriver* GetDriver() const { return Driver; }
 
+    UFUNCTION(BlueprintCallable, Category = "Pseudo Bloom")
+    bool IsDesignTime() const;
+
 public:
     UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Pseudo Bloom")
     FUI_BloomBuildParameter BuildParameter;
