@@ -24,25 +24,31 @@ public:
     {
     }
 
+    // Amount of bloom to draw outside the Widget.
     UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Build")
     float Overhang;
 
+    // The closer to 1.0, the more only the brightest pixels bloom.
     UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Build", meta = (ClampMin = "0.0", ClampMax = "1.0", UIMin = "0.0", UIMax = "1.0"))
     float AlphaToLuminance;
 
+    // Blooming transparency threshold.
     UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Build", meta = (ClampMin = "0.0", ClampMax = "1.0", UIMin = "0.0", UIMax = "1.0"))
     float LuminanceThreshold;
 
+    // Adjust the strength of the bloom.
     UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Build")
     float Strength;
 
+    // Fine-tune the bloom spread.
     UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Build")
     float Spead;
 
+    // The larger this is, the higher level MipMap is used, and the wider the bloom.
     UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Build", meta = (ClampMin = "1", UIMin = "1"))
     int32 MaxMipLevel;
 
-    // Free SizeでTexture保存できるようになるまで0は封印
+    // Final Texture Compression Strength
     UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Build", meta = (ClampMin = "1", UIMin = "1"))
     int32 Compression;
 
@@ -58,6 +64,8 @@ public:
     FUI_BloomPaintParameter()
         : TintColor(FLinearColor::White)
         , SizeScale(1.0f, 1.0f)
+        , bUseTexture(false)
+        , BloomTexture(nullptr)
     {
     }
 
