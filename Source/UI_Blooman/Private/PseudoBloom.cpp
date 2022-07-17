@@ -68,10 +68,10 @@ void UPseudoBloom::RequestOverwriteTexture()
 void UPseudoBloom::NotifyCreateTextureFinished()
 {
     // プロパティ変化をSlateに通知
-    if (PaintTexHandle.IsValid()) {
+    if (PaintParamHandle.IsValid()) {
         UObject* Prop(nullptr);
-        if (PaintTexHandle->GetValue(Prop) == FPropertyAccess::Result::Success) {
-            PaintTexHandle->SetValue(Prop);
+        if (PaintParamHandle->GetValue(Prop) == FPropertyAccess::Result::Success) {
+            PaintParamHandle->SetValue(Prop);
         } else {
             UE_LOG(LogTemp, Log, TEXT("%s: valueget failed."), UTF8_TO_TCHAR(__func__) );
         }
