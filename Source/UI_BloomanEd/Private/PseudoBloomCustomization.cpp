@@ -230,6 +230,7 @@ void FPseudoBloomCustomization::CustomizeDetails(IDetailLayoutBuilder& DetailLay
         [
             SNew(SHorizontalBox)
             + SHorizontalBox::Slot()
+            .AutoWidth()
             [
                 DetailLayout.GetProperty(GET_MEMBER_NAME_CHECKED(UPseudoBloom, PaintParameter.bUseTexture))->CreatePropertyValueWidget()
             ]
