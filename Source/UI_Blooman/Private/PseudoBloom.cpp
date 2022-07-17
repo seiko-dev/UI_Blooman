@@ -14,6 +14,21 @@ void UPseudoBloomDriver::NotifyCreateTextureFinished()
 }
 
 
+void UPseudoBloomDriver::DrawSlateBrush(UPARAM(ref) FPaintContext& Context, const FSlateBrush& Brush)
+{
+    Context.MaxLayer++;
+
+    FVector2D Position = (Context.AllottedGeometry.GetLocalSize() - Brush.ImageSize) * 0.5f;
+
+    FSlateDrawElement::MakeBox(
+        Context.OutDrawElements,
+        Context.MaxLayer,
+        Context.AllottedGeometry.ToPaintGeometry(Position, Brush.ImageSize),
+        &Brush,
+        ESlateDrawEffect::None,
+        Brush.TintColor.GetSpecifiedColor());
+}
+
 UPseudoBloom::UPseudoBloom(const FObjectInitializer& ObjectInitializer)
     : Super(ObjectInitializer)
 {

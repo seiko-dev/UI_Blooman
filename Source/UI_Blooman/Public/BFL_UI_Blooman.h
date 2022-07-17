@@ -24,13 +24,7 @@ public:
                                    bool UpdateImmediate,
                                    int32& NumMips);
 
-    UFUNCTION(Category = "Painting", BlueprintCallable)
-    static void DrawSlateBrush(UPARAM(ref) FPaintContext& Context, 
-                               FVector2D Position, 
-                               FVector2D Size,
-                               const FSlateBrush& Brush, 
-                               const FLinearColor& InTint);
 
     UFUNCTION(Category = "UMG", BlueprintPure)
-    static int32 GetNumMipMap(UTextureRenderTarget2D* Target);
+    static int32 GetRenderTargetMipMapNum(UTextureRenderTarget2D* Target);
 };

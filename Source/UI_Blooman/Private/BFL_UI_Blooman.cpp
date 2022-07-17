@@ -50,24 +50,7 @@ bool UBFL_UI_Blooman::DrawWidgetToTarget(UTextureRenderTarget2D* Target,
     return true;
 }
 
-void UBFL_UI_Blooman::DrawSlateBrush(FPaintContext& Context, 
-                                     FVector2D Position,
-                                     FVector2D Size,
-                                     const FSlateBrush& Brush, 
-                                     const FLinearColor& Tint)
-{
-    Context.MaxLayer++;
-
-    FSlateDrawElement::MakeBox(
-        Context.OutDrawElements,
-        Context.MaxLayer,
-        Context.AllottedGeometry.ToPaintGeometry(Position, Size),
-        &Brush,
-        ESlateDrawEffect::None,
-        Tint);
-}
-
-int32 UBFL_UI_Blooman::GetNumMipMap(UTextureRenderTarget2D* Target)
+int32 UBFL_UI_Blooman::GetRenderTargetMipMapNum(UTextureRenderTarget2D* Target)
 {
     if (Target) {
         return Target->GetNumMips();
