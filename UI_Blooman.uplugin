@@ -3,7 +3,7 @@
 	"Version": 1,
 	"VersionName": "0.0.1",
 	"FriendlyName": "UI_Blooman",
-	"Description": "Add a pseudo bloom effect for UMG widget",
+	"Description": "Add a fake bloom effect for UMG widget",
 	"Category": "2D",
 	"CreatedBy": "seiko_dev",
 	"CreatedByURL": "https://twitter.com/seiko_dev",

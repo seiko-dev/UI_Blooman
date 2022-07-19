@@ -2,8 +2,8 @@
 
 #include "UI_BloomanEd.h"
 #include "PropertyEditorModule.h"
-#include "PseudoBloom.h"
-#include "PseudoBloomCustomization.h"
+#include "FakeBloom.h"
+#include "FakeBloomCustomization.h"
 
 #define LOCTEXT_NAMESPACE "FUI_BloomanEdModule"
 
@@ -12,8 +12,8 @@ void FUI_BloomanEdModule::StartupModule()
     FPropertyEditorModule& PropertyModule = FModuleManager::LoadModuleChecked<FPropertyEditorModule>("PropertyEditor");
     
     PropertyModule.RegisterCustomClassLayout(
-        UPseudoBloom::StaticClass()->GetFName(),
-        FOnGetDetailCustomizationInstance::CreateStatic(&FPseudoBloomCustomization::MakeInstance));
+        UFakeBloom::StaticClass()->GetFName(),
+        FOnGetDetailCustomizationInstance::CreateStatic(&FFakeBloomCustomization::MakeInstance));
 
     PropertyModule.NotifyCustomizationModuleChanged();
 }
@@ -21,7 +21,7 @@ void FUI_BloomanEdModule::StartupModule()
 void FUI_BloomanEdModule::ShutdownModule()
 {
     FPropertyEditorModule& PropertyModule = FModuleManager::LoadModuleChecked<FPropertyEditorModule>("PropertyEditor");
-    PropertyModule.UnregisterCustomClassLayout(UPseudoBloom::StaticClass()->GetFName());
+    PropertyModule.UnregisterCustomClassLayout(UFakeBloom::StaticClass()->GetFName());
 }
 
 #undef LOCTEXT_NAMESPACE
