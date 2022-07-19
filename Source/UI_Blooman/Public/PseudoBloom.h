@@ -82,40 +82,71 @@ public:
     UTexture2D* BloomTexture;
 };
 
+USTRUCT(Blueprintable)
+struct UI_BLOOMAN_API FPseudoBloomPreProcessArgs
+{
+    GENERATED_BODY()
+public:
+    UPROPERTY(BlueprintReadOnly)
+    FGeometry Geometry;
+
+    FSlateRect CullingRect;
+
+    FPseudoBloomPreProcessArgs()
+    {
+    }
+
+    FPseudoBloomPreProcessArgs(const FGeometry& InGeometry, const FSlateRect& InCullingRect)
+        : Geometry(InGeometry)
+        , CullingRect(InCullingRect)
+    {}
+};
+
+
 UCLASS(Abstract, Blueprintable)
 class UI_BLOOMAN_API UPseudoBloomDriver : public UObject
 {
     GENERATED_BODY()
 public:
-    UPROPERTY(BlueprintReadOnly, Category = "Pseudo Bloom")
-    UPseudoBloom* Widget;
-
-    void SetWidget(UPseudoBloom* InWidget) {
-        Widget = InWidget;
-    }
+    UFUNCTION(BlueprintImplementableEvent, BlueprintCosmetic, Category = "User Interface")
+        void OnRebuild();
 
     UFUNCTION(BlueprintImplementableEvent, BlueprintCosmetic, Category = "User Interface")
-    void OnRebuild();
-
-    UFUNCTION(BlueprintImplementableEvent, BlueprintCosmetic, Category = "User Interface")
-    void OnPaintPreProcess(const FGeometry& MyGeometry);
+        void OnPaintPreProcess(const FPseudoBloomPreProcessArgs& PreProcessArgs);
 
     UFUNCTION(BlueprintImplementableEvent, BlueprintCosmetic, Category = "User Interface | Painting")
-    void OnPaint(UPARAM(ref) FPaintContext& Context, const FGeometry& Geometry) const;
+        void OnPaint(UPARAM(ref) FPaintContext& Context, const FGeometry& Geometry) const;
 
     UFUNCTION(BlueprintImplementableEvent, BlueprintCosmetic, Category = "Create Texture")
-    void RequestCreateNewTexture(const FString& Path);
+        void RequestCreateNewTexture(const FString& Path);
 
     UFUNCTION(BlueprintImplementableEvent, BlueprintCosmetic, Category = "Create Texture")
-    void RequestOverwriteTexture();
+        void RequestOverwriteTexture();
+
+public:
+    UFUNCTION(BlueprintCallable)
+    bool DrawWidgetToTarget(UTextureRenderTarget2D* Target,
+                            class UWidget* WidgetToRender,
+                            const FPseudoBloomPreProcessArgs& PreProcessArgs,
+                            float Overhang,
+                            bool UseGamma,
+                            bool UpdateImmediate,
+                            int32& NumMips);
 
     UFUNCTION(BlueprintCallable, Category = "Create Texture")
     void NotifyCreateTextureFinished();
 
-
     UFUNCTION(Category = "Painting", BlueprintCallable)
     static void DrawSlateBrush(UPARAM(ref) FPaintContext& Context, const FSlateBrush& Brush);
 
+public:
+    UPROPERTY(BlueprintReadOnly, Category = "Pseudo Bloom")
+    UPseudoBloom* Widget;
+
+public:
+    void SetWidget(UPseudoBloom* InWidget) {
+        Widget = InWidget;
+    }
 
 private:
     virtual class UWorld* GetWorld() const
