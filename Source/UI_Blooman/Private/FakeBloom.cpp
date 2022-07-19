@@ -1,16 +1,16 @@
 // Copyright seiko_dev. All Rights Reserved.
 
-#include "PseudoBloom.h"
-#include "SPseudoBloom.h"
+#include "FakeBloom.h"
+#include "SFakeBloom.h"
 #include "Slate/WidgetRenderer.h"
 #include "Widgets/Layout/SConstraintCanvas.h"
 #include "Input/HittestGrid.h"
 
 #define LOCTEXT_NAMESPACE "UI_BLOOMAN"
 
-bool UPseudoBloomDriver::DrawWidgetToTarget(UTextureRenderTarget2D* Target,
+bool UFakeBloomDriver::DrawWidgetToTarget(UTextureRenderTarget2D* Target,
                                             class UWidget* WidgetToRender,
-                                            const FPseudoBloomPreProcessArgs& PreProcessArgs,
+                                            const FFakeBloomPreProcessArgs& PreProcessArgs,
                                             float Overhang,
                                             bool UseGamma,
                                             bool UpdateImmediate,
@@ -124,7 +124,7 @@ bool UPseudoBloomDriver::DrawWidgetToTarget(UTextureRenderTarget2D* Target,
 }
 
 // Editor用テクスチャ生成処理終了時の呼出
-void UPseudoBloomDriver::NotifyCreateTextureFinished()
+void UFakeBloomDriver::NotifyCreateTextureFinished()
 {
 #if WITH_EDITOR
     Widget->NotifyCreateTextureFinished();
@@ -132,7 +132,7 @@ void UPseudoBloomDriver::NotifyCreateTextureFinished()
 }
 
 
-void UPseudoBloomDriver::DrawSlateBrush(UPARAM(ref) FPaintContext& Context, const FSlateBrush& Brush)
+void UFakeBloomDriver::DrawSlateBrush(UPARAM(ref) FPaintContext& Context, const FSlateBrush& Brush)
 {
     Context.MaxLayer++;
 
@@ -147,26 +147,26 @@ void UPseudoBloomDriver::DrawSlateBrush(UPARAM(ref) FPaintContext& Context, cons
         Brush.TintColor.GetSpecifiedColor());
 }
 
-UPseudoBloom::UPseudoBloom(const FObjectInitializer& ObjectInitializer)
+UFakeBloom::UFakeBloom(const FObjectInitializer& ObjectInitializer)
     : Super(ObjectInitializer)
 {
     bIsVariable = true;
     Visibility = ESlateVisibility::SelfHitTestInvisible;
 }
 
-UWidget* UPseudoBloom::GetChildContent() const
+UWidget* UFakeBloom::GetChildContent() const
 {
     return GetContentSlot()->Content;
 }
 
-void UPseudoBloom::ReleaseSlateResources(bool bReleaseChildren)
+void UFakeBloom::ReleaseSlateResources(bool bReleaseChildren)
 {
     Super::ReleaseSlateResources(bReleaseChildren);
-    MyPseudoBloom.Reset();
+    MyFakeBloom.Reset();
 }
 
 #if WITH_EDITOR
-void UPseudoBloom::PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent)
+void UFakeBloom::PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent)
 {
     Super::PostEditChangeProperty(PropertyChangedEvent);
 
@@ -181,24 +181,24 @@ void UPseudoBloom::PostEditChangeProperty(FPropertyChangedEvent& PropertyChanged
     }
 }
 
-const FText UPseudoBloom::GetPaletteCategory()
+const FText UFakeBloom::GetPaletteCategory()
 {
     return LOCTEXT("SpecialFX", "Special Effects");
 }
 
-void UPseudoBloom::RequestCreateNewTexture(const FString& Path)
+void UFakeBloom::RequestCreateNewTexture(const FString& Path)
 {
     // 同じインスタンスに対して、RebuildWidgetより先に来てしまうのでここでDriverを作る場合もある
     GetDriver()->RequestCreateNewTexture(Path);
 }
 
-void UPseudoBloom::RequestOverwriteTexture()
+void UFakeBloom::RequestOverwriteTexture()
 {
     // 同じインスタンスに対して、RebuildWidgetより先に来てしまうのでここでDriverを作る場合もある
     GetDriver()->RequestOverwriteTexture();
 }
 
-void UPseudoBloom::NotifyCreateTextureFinished()
+void UFakeBloom::NotifyCreateTextureFinished()
 {
     // プロパティ変化をSlateに通知
     if (PaintParamHandle.IsValid()) {
@@ -216,11 +216,11 @@ void UPseudoBloom::NotifyCreateTextureFinished()
 }
 #endif
 
-TSharedRef<SWidget> UPseudoBloom::RebuildWidget()
+TSharedRef<SWidget> UFakeBloom::RebuildWidget()
 {
     GetDriver()->OnRebuild();
 
-    MyPseudoBloom = SNew(SPseudoBloom);
+    MyFakeBloom = SNew(SFakeBloom);
 
     // Add any existing content to the new slate box
     if (GetChildrenCount() > 0)
@@ -228,47 +228,47 @@ TSharedRef<SWidget> UPseudoBloom::RebuildWidget()
         UPanelSlot* ContentSlot = GetContentSlot();
         if (ContentSlot->Content)
         {
-            MyPseudoBloom->SetContent(ContentSlot->Content->TakeWidget(), Driver);
+            MyFakeBloom->SetContent(ContentSlot->Content->TakeWidget(), Driver);
         }
     }
 
-    return MyPseudoBloom.ToSharedRef();
+    return MyFakeBloom.ToSharedRef();
 }
 
-void UPseudoBloom::OnSlotAdded(UPanelSlot* InSlot)
+void UFakeBloom::OnSlotAdded(UPanelSlot* InSlot)
 {
     // Add the child to the live slot if it already exists
-    if (MyPseudoBloom.IsValid() && InSlot->Content)
+    if (MyFakeBloom.IsValid() && InSlot->Content)
     {
-        MyPseudoBloom->SetContent(InSlot->Content->TakeWidget(), Driver);
+        MyFakeBloom->SetContent(InSlot->Content->TakeWidget(), Driver);
     }
 }
 
-void UPseudoBloom::OnSlotRemoved(UPanelSlot* InSlot)
+void UFakeBloom::OnSlotRemoved(UPanelSlot* InSlot)
 {
     // Remove the widget from the live slot if it exists.
-    if (MyPseudoBloom.IsValid())
+    if (MyFakeBloom.IsValid())
     {
-        MyPseudoBloom->SetContent(SNullWidget::NullWidget, nullptr);
+        MyFakeBloom->SetContent(SNullWidget::NullWidget, nullptr);
     }
 }
 
-UPseudoBloomDriver* UPseudoBloom::GetDriver()
+UFakeBloomDriver* UFakeBloom::GetDriver()
 {
     if (!Driver) {
         if (!DriverClass) {
-            FString Path = "/UI_Blooman/B_PseudoBloomDriver.B_PseudoBloomDriver_C";
-            DriverClass = TSoftClassPtr<UPseudoBloomDriver>(FSoftObjectPath(*Path)).LoadSynchronous();
+            FString Path = "/UI_Blooman/B_FakeBloomDriver.B_FakeBloomDriver_C";
+            DriverClass = TSoftClassPtr<UFakeBloomDriver>(FSoftObjectPath(*Path)).LoadSynchronous();
         }
         if (DriverClass) {
-            Driver = NewObject<UPseudoBloomDriver>(this, DriverClass, TEXT("UPseudoBloomDriver"));
+            Driver = NewObject<UFakeBloomDriver>(this, DriverClass, TEXT("UFakeBloomDriver"));
             Driver->SetWidget(this);
         }
     }
     return Driver;
 }
 
-bool UPseudoBloom::IsDesignTime() const
+bool UFakeBloom::IsDesignTime() const
 {
 #if WITH_EDITOR
     return UWidget::IsDesignTime();

@@ -4,10 +4,10 @@
 
 #include "IDetailCustomization.h"
 
-class FPseudoBloomCustomization : public IDetailCustomization
+class FFakeBloomCustomization : public IDetailCustomization
 {
 public:
-    FPseudoBloomCustomization();
+    FFakeBloomCustomization();
 
     // Makes a new instance of this detail layout class for a specific detail view requesting it
     static TSharedRef<IDetailCustomization> MakeInstance();

@@ -4,7 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "Components/ContentWidget.h"
-#include "PseudoBloom.generated.h"
+#include "FakeBloom.generated.h"
 
 
 USTRUCT(Blueprintable)
@@ -83,7 +83,7 @@ public:
 };
 
 USTRUCT(Blueprintable)
-struct UI_BLOOMAN_API FPseudoBloomPreProcessArgs
+struct UI_BLOOMAN_API FFakeBloomPreProcessArgs
 {
     GENERATED_BODY()
 public:
@@ -92,11 +92,11 @@ public:
 
     FSlateRect CullingRect;
 
-    FPseudoBloomPreProcessArgs()
+    FFakeBloomPreProcessArgs()
     {
     }
 
-    FPseudoBloomPreProcessArgs(const FGeometry& InGeometry, const FSlateRect& InCullingRect)
+    FFakeBloomPreProcessArgs(const FGeometry& InGeometry, const FSlateRect& InCullingRect)
         : Geometry(InGeometry)
         , CullingRect(InCullingRect)
     {}
@@ -104,7 +104,7 @@ public:
 
 
 UCLASS(Abstract, Blueprintable)
-class UI_BLOOMAN_API UPseudoBloomDriver : public UObject
+class UI_BLOOMAN_API UFakeBloomDriver : public UObject
 {
     GENERATED_BODY()
 public:
@@ -112,7 +112,7 @@ public:
         void OnRebuild();
 
     UFUNCTION(BlueprintImplementableEvent, BlueprintCosmetic, Category = "User Interface")
-        void OnPaintPreProcess(const FPseudoBloomPreProcessArgs& PreProcessArgs);
+        void OnPaintPreProcess(const FFakeBloomPreProcessArgs& PreProcessArgs);
 
     UFUNCTION(BlueprintImplementableEvent, BlueprintCosmetic, Category = "User Interface | Painting")
         void OnPaint(UPARAM(ref) FPaintContext& Context, const FGeometry& Geometry) const;
@@ -127,7 +127,7 @@ public:
     UFUNCTION(BlueprintCallable)
     bool DrawWidgetToTarget(UTextureRenderTarget2D* Target,
                             class UWidget* WidgetToRender,
-                            const FPseudoBloomPreProcessArgs& PreProcessArgs,
+                            const FFakeBloomPreProcessArgs& PreProcessArgs,
                             float Overhang,
                             bool UseGamma,
                             bool UpdateImmediate,
@@ -140,11 +140,11 @@ public:
     static void DrawSlateBrush(UPARAM(ref) FPaintContext& Context, const FSlateBrush& Brush);
 
 public:
-    UPROPERTY(BlueprintReadOnly, Category = "Pseudo Bloom")
-    UPseudoBloom* Widget;
+    UPROPERTY(BlueprintReadOnly, Category = "Fake Bloom")
+    UFakeBloom* Widget;
 
 public:
-    void SetWidget(UPseudoBloom* InWidget) {
+    void SetWidget(UFakeBloom* InWidget) {
         Widget = InWidget;
     }
 
@@ -166,30 +166,30 @@ private:
  * 
  */
 UCLASS()
-class UI_BLOOMAN_API UPseudoBloom : public UContentWidget
+class UI_BLOOMAN_API UFakeBloom : public UContentWidget
 {
     GENERATED_BODY()
 public:
-    UPseudoBloom(const FObjectInitializer& ObjectInitializer);
+    UFakeBloom(const FObjectInitializer& ObjectInitializer);
 
-    UFUNCTION(BlueprintCallable, Category = "Pseudo Bloom")
+    UFUNCTION(BlueprintCallable, Category = "Fake Bloom")
     UWidget* GetChildContent() const;
 
-    UFUNCTION(BlueprintCallable, Category = "Pseudo Bloom")
-    UPseudoBloomDriver* GetDriver() const { return Driver; }
+    UFUNCTION(BlueprintCallable, Category = "Fake Bloom")
+    UFakeBloomDriver* GetDriver() const { return Driver; }
 
-    UFUNCTION(BlueprintCallable, Category = "Pseudo Bloom")
+    UFUNCTION(BlueprintCallable, Category = "Fake Bloom")
     bool IsDesignTime() const;
 
 public:
-    UPROPERTY(BlueprintReadWrite, EditAnywhere, Interp, Category = "Pseudo Bloom")
+    UPROPERTY(BlueprintReadWrite, EditAnywhere, Interp, Category = "Fake Bloom")
     FUI_BloomBuildParameter BuildParameter;
 
-    UPROPERTY(BlueprintReadWrite, EditAnywhere, Interp, Category = "Pseudo Bloom")
+    UPROPERTY(BlueprintReadWrite, EditAnywhere, Interp, Category = "Fake Bloom")
     FUI_BloomPaintParameter PaintParameter;
 
-    UPROPERTY(BlueprintReadWrite, EditAnywhere, NoClear, AdvancedDisplay, Category = "Pseudo Bloom")
-    TSubclassOf<UPseudoBloomDriver> DriverClass;
+    UPROPERTY(BlueprintReadWrite, EditAnywhere, NoClear, AdvancedDisplay, Category = "Fake Bloom")
+    TSubclassOf<UFakeBloomDriver> DriverClass;
 
 
 #if WITH_EDITOR
@@ -223,12 +223,12 @@ protected:
     virtual void OnSlotAdded(UPanelSlot* InSlot) override;
     virtual void OnSlotRemoved(UPanelSlot* InSlot) override;
 
-    UPseudoBloomDriver* GetDriver();
+    UFakeBloomDriver* GetDriver();
 
 private:
     UPROPERTY()
-    UPseudoBloomDriver* Driver;
+    UFakeBloomDriver* Driver;
 
 protected:
-    TSharedPtr<class SPseudoBloom> MyPseudoBloom;
+    TSharedPtr<class SFakeBloom> MyFakeBloom;
 };
