@@ -9,12 +9,12 @@
 #define LOCTEXT_NAMESPACE "UI_BLOOMAN"
 
 bool UFakeBloomDriver::DrawWidgetToTarget(UTextureRenderTarget2D* Target,
-                                            class UWidget* WidgetToRender,
-                                            const FFakeBloomPreProcessArgs& PreProcessArgs,
-                                            float Overhang,
-                                            bool UseGamma,
-                                            bool UpdateImmediate,
-                                            int32& NumMips)
+                                          class UWidget* WidgetToRender,
+                                          const FFakeBloomPreProcessArgs& PreProcessArgs,
+                                          float Overhang,
+                                          bool UseGamma,
+                                          bool UpdateImmediate,
+                                          int32& NumMips)
 {
     const FVector2D& LocalSize = PreProcessArgs.Geometry.GetLocalSize();
     
@@ -45,6 +45,7 @@ bool UFakeBloomDriver::DrawWidgetToTarget(UTextureRenderTarget2D* Target,
         // やってる事のメモ
         // https://github.com/seiko-dev/UI_Blooman/issues/29
 
+        const TSharedRef<SWidget>& Content = WidgetToRender->TakeWidget();
         const float Scale = PreProcessArgs.Geometry.GetAccumulatedLayoutTransform().GetScale();
         const FVector2D RectLT(PreProcessArgs.CullingRect.Left, PreProcessArgs.CullingRect.Top);
         const FVector2D AbsolutePos = PreProcessArgs.Geometry.GetAccumulatedRenderTransform().GetTranslation();
@@ -52,16 +53,9 @@ bool UFakeBloomDriver::DrawWidgetToTarget(UTextureRenderTarget2D* Target,
         // ContentPos部分の距離は、Widget DesingerがZoomしている場合に拡縮がかかるので、打ち消しておく。
         FVector2D ContentPos = (AbsolutePos - RectLT)/Scale;
 
-        // テクスチャ自体は等倍で描く必要があるので、Scaleは常に1.0。
-        FGeometry WindowGeometry = FGeometry::MakeRoot(ContentPos + LocalSize, FSlateLayoutTransform(1.0));
+        WidgetRenderer->ViewOffset = DrawOffset - ContentPos;
 
-        // Geometryと一致する大きさ
-        FSlateRect WindowClipRect = WindowGeometry.GetLayoutBoundingRect();
-
-        // 一時的に付け替えるので親を覚えておく
-        const TSharedRef<SWidget>& Content = WidgetToRender->TakeWidget();
-        TSharedPtr<SWidget> OldParent = Content->GetParentWidget();
-
+        // OffsetしたCanvas
         TSharedRef<SConstraintCanvas> Canvas = SNew(SConstraintCanvas)
             + SConstraintCanvas::Slot()
             .Anchors(FAnchors(0, 0, 1, 1))
@@ -70,11 +64,21 @@ bool UFakeBloomDriver::DrawWidgetToTarget(UTextureRenderTarget2D* Target,
             [
                 Content
             ];
+#if 1
+        WidgetRenderer->DrawWidget(Target, Canvas, ContentPos + LocalSize, 0.0f);
+
+#else
+        // テクスチャ自体は等倍で描く必要があるので、Scaleは常に1.0。
+        FGeometry WindowGeometry = FGeometry::MakeRoot(ContentPos + LocalSize, FSlateLayoutTransform(1.0));
+
+        // Geometryと一致する大きさ
+        FSlateRect WindowClipRect = WindowGeometry.GetLayoutBoundingRect();
+
+        // 一時的に付け替えるので親を覚えておく
+        TSharedPtr<SWidget> OldParent = Content->GetParentWidget();
 
         TSharedRef<SVirtualWindow> Window = SNew(SVirtualWindow).Size(WindowGeometry.GetLocalSize());
         Window->SetContent(Canvas);
-
-        WidgetRenderer->ViewOffset = DrawOffset - ContentPos;
 
         WidgetRenderer->DrawWindow(
             Target->GameThread_GetRenderTargetResource(),
@@ -83,6 +87,13 @@ bool UFakeBloomDriver::DrawWidgetToTarget(UTextureRenderTarget2D* Target,
             WindowGeometry,
             WindowClipRect,
             0.0f);
+
+        // 付け替えた親戻し
+        if (OldParent.IsValid())
+        {
+            Content->AssignParentWidget(OldParent);
+        }
+#endif
 
 #if 0
         // https://github.com/seiko-dev/UI_Blooman/issues/32
@@ -94,11 +105,7 @@ bool UFakeBloomDriver::DrawWidgetToTarget(UTextureRenderTarget2D* Target,
         UE_LOG(LogTemp, Log, TEXT("%s: "), UTF8_TO_TCHAR(__func__));
 #endif
 
-        // 付け替えた親戻し
-        if (OldParent.IsValid())
-        {
-            Content->AssignParentWidget(OldParent);
-        }
+       
 
         FlushRenderingCommands();
         BeginCleanup(WidgetRenderer);
@@ -218,7 +225,11 @@ void UFakeBloom::NotifyCreateTextureFinished()
 
 TSharedRef<SWidget> UFakeBloom::RebuildWidget()
 {
-    GetDriver()->OnRebuild();
+    // 再作成時はDriverも作り直す
+    // Widget DesignerへD&DでFakeBloomを含むUserWidgetを配置した際、
+    // Drag時に表示されるWidgetのコピーを生成する中でDriverだけ流用するとバグる
+    // https://github.com/seiko-dev/UI_Blooman/issues/36
+    GetDriver(true)->OnRebuild();
 
     MyFakeBloom = SNew(SFakeBloom);
 
@@ -253,9 +264,9 @@ void UFakeBloom::OnSlotRemoved(UPanelSlot* InSlot)
     }
 }
 
-UFakeBloomDriver* UFakeBloom::GetDriver()
+UFakeBloomDriver* UFakeBloom::GetDriver(bool ForceRebuild)
 {
-    if (!Driver) {
+    if (!Driver || ForceRebuild) {
         if (!DriverClass) {
             FString Path = "/UI_Blooman/B_FakeBloomDriver.B_FakeBloomDriver_C";
             DriverClass = TSoftClassPtr<UFakeBloomDriver>(FSoftObjectPath(*Path)).LoadSynchronous();
