@@ -223,7 +223,7 @@ protected:
     virtual void OnSlotAdded(UPanelSlot* InSlot) override;
     virtual void OnSlotRemoved(UPanelSlot* InSlot) override;
 
-    UFakeBloomDriver* GetDriver();
+    UFakeBloomDriver* GetDriver(bool ForceRebuild=false);
 
 private:
     UPROPERTY()

@@ -1,2 +1,2 @@
 # UI_Blooman
-Unreal Engine plugin. Add a pseudo bloom effect for UMG widget.
+Unreal Engine plugin. Add a fake bloom effect for UMG widget.
