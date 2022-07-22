@@ -4,7 +4,7 @@
 	"VersionName": "0.0.1",
 	"FriendlyName": "UI_Blooman",
 	"Description": "Add a fake bloom effect for UMG widget",
-	"Category": "2D",
+	"Category": "UI",
 	"CreatedBy": "seiko_dev",
 	"CreatedByURL": "https://twitter.com/seiko_dev",
 	"DocsURL": "https://github.com/seiko-dev/UI_Blooman",
