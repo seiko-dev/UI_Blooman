@@ -27,11 +27,11 @@ public:
     void Reset();
 
     void SetSavePath(const FString& Path) {
-        SavePath = Path;
+        TextureSavePath = Path;
     }
 
-    const FString& GetSavePath() const {
-        return SavePath;
+    const FString& GetTextureSavePath() const {
+        return TextureSavePath;
     }
 
     void SetTextureCreateCommand(ETexCreateCmd Cmd) {
@@ -50,9 +50,10 @@ public:
         return bNeedRestoreShowOutline;
     }
 
+    void ExecuteReservedCommand(class UFakeBloomUI* Widget);
 
 private:
     ETexCreateCmd TextureCreateCommand;
     bool bNeedRestoreShowOutline;
-    FString SavePath;
+    FString TextureSavePath;
 };

@@ -1,179 +1,38 @@
 // Copyright seiko_dev. All Rights Reserved.
 
-#include "FakeBloom.h"
-#include "SFakeBloom.h"
-#include "Slate/WidgetRenderer.h"
-#include "Widgets/Layout/SConstraintCanvas.h"
-#include "Input/HittestGrid.h"
+#include "FakeBloomUI.h"
+#include "SFakeBloomUI.h"
+#include "FakeBloomUI_Builder.h"
+#include "FakeBloomUI_Painter.h"
+
+#if WITH_EDITOR
+#include "Kismet/KismetRenderingLibrary.h"
+#endif
 
 #define LOCTEXT_NAMESPACE "UI_BLOOMAN"
 
-bool UFakeBloomDriver::DrawWidgetToTarget(UTextureRenderTarget2D* Target,
-                                          class UWidget* WidgetToRender,
-                                          const FFakeBloomPreProcessArgs& PreProcessArgs,
-                                          float Overhang,
-                                          bool UseGamma,
-                                          bool UpdateImmediate,
-                                          int32& NumMips)
-{
-    const FVector2D& LocalSize = PreProcessArgs.Geometry.GetLocalSize();
-    
-    if (!WidgetToRender)
-    {
-        UE_LOG(LogTemp, Warning, TEXT("DrawWidgetToTarget Fail : WidgetToRender is empty!"));
-        return false;
-    }
-    if (LocalSize.X < 0 || LocalSize.Y < 0)
-    {
-        UE_LOG(LogTemp, Warning, TEXT("DrawWidgetToTarget Fail : LocalSize is 0 or less!"));
-        return false;
-    }
-    if (!Target)
-    {
-        UE_LOG(LogTemp, Warning, TEXT("DrawWidgetToTarget Fail : Target is empty!"));
-        return false;
-    }
+//------------------------------------------------------------------------------------------------
 
-    FWidgetRenderer* WidgetRenderer = new FWidgetRenderer(UseGamma, false);
-    check(WidgetRenderer);
-
-    {
-        const FVector2D DrawOffset(Overhang, Overhang);
-        WidgetRenderer->SetIsPrepassNeeded(false); // Paintで先に描画済み(Layout計算済み)なのでPrepass不要
-
-#if 1 /* Niagara UI Renderer対応実装 */
-        // やってる事のメモ
-        // https://github.com/seiko-dev/UI_Blooman/issues/29
-
-        const TSharedRef<SWidget>& Content = WidgetToRender->TakeWidget();
-        const float Scale = PreProcessArgs.Geometry.GetAccumulatedLayoutTransform().GetScale();
-        const FVector2D RectLT(PreProcessArgs.CullingRect.Left, PreProcessArgs.CullingRect.Top);
-        const FVector2D AbsolutePos = PreProcessArgs.Geometry.GetAccumulatedRenderTransform().GetTranslation();
-
-        // ContentPos部分の距離は、Widget DesingerがZoomしている場合に拡縮がかかるので、打ち消しておく。
-        FVector2D ContentPos = (AbsolutePos - RectLT)/Scale;
-
-        WidgetRenderer->ViewOffset = DrawOffset - ContentPos;
-
-        // OffsetしたCanvas
-        TSharedRef<SConstraintCanvas> Canvas = SNew(SConstraintCanvas)
-            + SConstraintCanvas::Slot()
-            .Anchors(FAnchors(0, 0, 1, 1))
-            .Offset(FMargin(ContentPos.X, ContentPos.Y, 0, 0))
-            .Alignment(FVector2D(0, 0))
-            [
-                Content
-            ];
-#if 1
-        WidgetRenderer->DrawWidget(Target, Canvas, ContentPos + LocalSize, 0.0f);
-
-#else
-        // テクスチャ自体は等倍で描く必要があるので、Scaleは常に1.0。
-        FGeometry WindowGeometry = FGeometry::MakeRoot(ContentPos + LocalSize, FSlateLayoutTransform(1.0));
-
-        // Geometryと一致する大きさ
-        FSlateRect WindowClipRect = WindowGeometry.GetLayoutBoundingRect();
-
-        // 一時的に付け替えるので親を覚えておく
-        TSharedPtr<SWidget> OldParent = Content->GetParentWidget();
-
-        TSharedRef<SVirtualWindow> Window = SNew(SVirtualWindow).Size(WindowGeometry.GetLocalSize());
-        Window->SetContent(Canvas);
-
-        WidgetRenderer->DrawWindow(
-            Target->GameThread_GetRenderTargetResource(),
-            *MakeUnique<FHittestGrid>(),
-            Window,
-            WindowGeometry,
-            WindowClipRect,
-            0.0f);
-
-        // 付け替えた親戻し
-        if (OldParent.IsValid())
-        {
-            Content->AssignParentWidget(OldParent);
-        }
-#endif
-
-#if 0
-        // https://github.com/seiko-dev/UI_Blooman/issues/32
-        // ↑に取り組む時に使いそうなので残しておく
-        UE_LOG(LogTemp, Log, TEXT("%s:     a %s"), UTF8_TO_TCHAR(__func__), *AbsolutePos.ToString());
-        UE_LOG(LogTemp, Log, TEXT("%s:     c %s"), UTF8_TO_TCHAR(__func__), *ContentPos.ToString());
-        UE_LOG(LogTemp, Log, TEXT("%s:     L %s"), UTF8_TO_TCHAR(__func__), *LocalSize.ToString());
-        UE_LOG(LogTemp, Log, TEXT("%s:     w %s"), UTF8_TO_TCHAR(__func__), *WindowGeometry.GetLocalSize().ToString());
-        UE_LOG(LogTemp, Log, TEXT("%s: "), UTF8_TO_TCHAR(__func__));
-#endif
-
-       
-
-        FlushRenderingCommands();
-        BeginCleanup(WidgetRenderer);
-
-
-#else /* シンプル版 */
-        WidgetRenderer->ViewOffset = DrawOffset;
-        WidgetRenderer->DrawWidget(Target, WidgetToRender->TakeWidget(), LocalSize, 0.0);
-
-        FlushRenderingCommands();
-        BeginCleanup(WidgetRenderer);
-#endif
-
-        NumMips = 0;
-
-        if (UpdateImmediate) {
-            Target->UpdateResourceImmediate(false);
-            NumMips = Target->GetNumMips();
-        }
-    }
-
-    return true;
-}
-
-// Editor用テクスチャ生成処理終了時の呼出
-void UFakeBloomDriver::NotifyCreateTextureFinished()
-{
-#if WITH_EDITOR
-    Widget->NotifyCreateTextureFinished();
-#endif
-}
-
-
-void UFakeBloomDriver::DrawSlateBrush(UPARAM(ref) FPaintContext& Context, const FSlateBrush& Brush)
-{
-    Context.MaxLayer++;
-
-    FVector2D Position = (Context.AllottedGeometry.GetLocalSize() - Brush.ImageSize) * 0.5f;
-
-    FSlateDrawElement::MakeBox(
-        Context.OutDrawElements,
-        Context.MaxLayer,
-        Context.AllottedGeometry.ToPaintGeometry(Position, Brush.ImageSize),
-        &Brush,
-        ESlateDrawEffect::None,
-        Brush.TintColor.GetSpecifiedColor());
-}
-
-UFakeBloom::UFakeBloom(const FObjectInitializer& ObjectInitializer)
+UFakeBloomUI::UFakeBloomUI(const FObjectInitializer& ObjectInitializer)
     : Super(ObjectInitializer)
 {
     bIsVariable = true;
     Visibility = ESlateVisibility::SelfHitTestInvisible;
 }
 
-UWidget* UFakeBloom::GetChildContent() const
+UWidget* UFakeBloomUI::GetChildContent() const
 {
     return GetContentSlot()->Content;
 }
 
-void UFakeBloom::ReleaseSlateResources(bool bReleaseChildren)
+void UFakeBloomUI::ReleaseSlateResources(bool bReleaseChildren)
 {
     Super::ReleaseSlateResources(bReleaseChildren);
-    MyFakeBloom.Reset();
+    MyFakeBloomUI.Reset();
 }
 
 #if WITH_EDITOR
-void UFakeBloom::PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent)
+void UFakeBloomUI::PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent)
 {
     Super::PostEditChangeProperty(PropertyChangedEvent);
 
@@ -182,56 +41,89 @@ void UFakeBloom::PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEv
         TSharedPtr<SWidget> SafeWidget = GetCachedWidget();
         if (SafeWidget.IsValid())
         {
-            // プロパティ変えたら再構築
-            GetDriver()->OnRebuild();
+            // 変更したプロパティ値に対応してRender Targetを作り直させたいので再構築
+            if (Builder) {
+                Builder->OnRequestRedraw();
+            }
         }
     }
 }
 
-const FText UFakeBloom::GetPaletteCategory()
+const FText UFakeBloomUI::GetPaletteCategory()
 {
     return LOCTEXT("SpecialFX", "Special Effects");
 }
 
-void UFakeBloom::RequestCreateNewTexture(const FString& Path)
+void UFakeBloomUI::CreateNewTexture(UTextureRenderTarget2D* InRenderTarget)
 {
-    // 同じインスタンスに対して、RebuildWidgetより先に来てしまうのでここでDriverを作る場合もある
-    GetDriver()->RequestCreateNewTexture(Path);
-}
+    Builder->OnFinishBuild.RemoveDynamic(this, &UFakeBloomUI::CreateNewTexture);
 
-void UFakeBloom::RequestOverwriteTexture()
-{
-    // 同じインスタンスに対して、RebuildWidgetより先に来てしまうのでここでDriverを作る場合もある
-    GetDriver()->RequestOverwriteTexture();
-}
-
-void UFakeBloom::NotifyCreateTextureFinished()
-{
-    // プロパティ変化をSlateに通知
-    if (PaintParamHandle.IsValid()) {
-        UObject* Prop(nullptr);
-        if (PaintParamHandle->GetValue(Prop) == FPropertyAccess::Result::Success) {
-            PaintParamHandle->SetValue(Prop);
-        } else {
-            UE_LOG(LogTemp, Log, TEXT("%s: valueget failed."), UTF8_TO_TCHAR(__func__) );
-        }
+    if (!Builder) {
+        // ここで生成できてないとおかしい
+        ensure(0);
+        return;
     }
 
-    // DetailsCustomizationが何かBindしてるかもしれないので通知(Outline制御の後始末とか
-    CreateTextureCallBack.ExecuteIfBound();
-    CreateTextureCallBack.Unbind();
+    UTexture2D* Tex = UKismetRenderingLibrary::RenderTargetCreateStaticTexture2DEditorOnly(
+        InRenderTarget,
+        TextureSavePath,
+        WriteParameter.Format,
+        TextureMipGenSettings::TMGS_NoMipmaps);
+
+    if (Tex) {
+        PaintParameter.bUseTexture = true;
+        PaintParameter.BloomTexture = Tex;
+    }
+
+    OnFinishWriteJob();
+}
+
+void UFakeBloomUI::OverwriteTexture(UTextureRenderTarget2D* InRenderTarget)
+{
+    Builder->OnFinishBuild.RemoveDynamic(this, &UFakeBloomUI::OverwriteTexture);
+
+    UKismetRenderingLibrary::ConvertRenderTargetToTexture2DEditorOnly(
+        GetWorld(),
+        InRenderTarget,
+        PaintParameter.BloomTexture);
+
+    OnFinishWriteJob();
+}
+
+void UFakeBloomUI::OnFinishWriteJob()
+{
+    // DetailsCustomizationへの通知用
+    FinishEditorCommand.ExecuteIfBound();
+    FinishEditorCommand.Unbind();
 }
 #endif
 
-TSharedRef<SWidget> UFakeBloom::RebuildWidget()
+TSharedRef<SWidget> UFakeBloomUI::RebuildWidget()
 {
-    // 再作成時はDriverも作り直す
     // Widget DesignerへD&DでFakeBloomを含むUserWidgetを配置した際、
-    // Drag時に表示されるWidgetのコピーを生成する中でDriverだけ流用するとバグる
+    // Drag時に表示されるWidgetのコピーを生成するっぽいので流用するとバグる。
+    // (Drag中の半透明UFakeBloomUIがOuterだとGetWorldに失敗し各種関数が動かない)
     // https://github.com/seiko-dev/UI_Blooman/issues/36
-    GetDriver(true)->OnRebuild();
+    Builder = GetBuilder(true);
+    Painter = GetPainter(true);
 
-    MyFakeBloom = SNew(SFakeBloom);
+#if WITH_EDITOR
+    // 何かしら予約があれば実行
+    CheckEditorCommand.ExecuteIfBound(this);
+    CheckEditorCommand.Unbind();
+#endif
+
+    if (Builder && Painter) {
+        Builder->OnRebuild();
+        Painter->OnRebuild();
+
+        // Builderの成果をPainterに渡す予約
+        // PainterがTObjectPtrなので、Getで生ポインタに変換しないとコンパイルが通らない
+        Builder->OnFinishBuild.AddDynamic(Painter.Get(), &UFakeBloomUI_Painter::SetRenderTexture);
+    }
+
+    MyFakeBloomUI = SNew(SFakeBloomUI);
+    MyFakeBloomUI->SetDrivers(Builder, Painter);
 
     // Add any existing content to the new slate box
     if (GetChildrenCount() > 0)
@@ -239,47 +131,75 @@ TSharedRef<SWidget> UFakeBloom::RebuildWidget()
         UPanelSlot* ContentSlot = GetContentSlot();
         if (ContentSlot->Content)
         {
-            MyFakeBloom->SetContent(ContentSlot->Content->TakeWidget(), Driver);
+            MyFakeBloomUI->SetContent(ContentSlot->Content->TakeWidget());
+
+            if (Builder) {
+                Builder->TargetWidget = ContentSlot->Content;
+            }
         }
     }
 
-    return MyFakeBloom.ToSharedRef();
+    return MyFakeBloomUI.ToSharedRef();
 }
 
-void UFakeBloom::OnSlotAdded(UPanelSlot* InSlot)
+void UFakeBloomUI::OnSlotAdded(UPanelSlot* InSlot)
 {
     // Add the child to the live slot if it already exists
-    if (MyFakeBloom.IsValid() && InSlot->Content)
+    if (MyFakeBloomUI.IsValid() && InSlot->Content)
     {
-        MyFakeBloom->SetContent(InSlot->Content->TakeWidget(), Driver);
+        MyFakeBloomUI->SetContent(InSlot->Content->TakeWidget());
     }
 }
 
-void UFakeBloom::OnSlotRemoved(UPanelSlot* InSlot)
+void UFakeBloomUI::OnSlotRemoved(UPanelSlot* InSlot)
 {
     // Remove the widget from the live slot if it exists.
-    if (MyFakeBloom.IsValid())
+    if (MyFakeBloomUI.IsValid())
     {
-        MyFakeBloom->SetContent(SNullWidget::NullWidget, nullptr);
+        MyFakeBloomUI->SetContent(SNullWidget::NullWidget);
     }
 }
 
-UFakeBloomDriver* UFakeBloom::GetDriver(bool ForceRebuild)
+UFakeBloomUI_Builder* UFakeBloomUI::GetBuilder(bool ForceRebuild)
 {
-    if (!Driver || ForceRebuild) {
-        if (!DriverClass) {
-            FString Path = "/UI_Blooman/B_FakeBloomDriver.B_FakeBloomDriver_C";
-            DriverClass = TSoftClassPtr<UFakeBloomDriver>(FSoftObjectPath(*Path)).LoadSynchronous();
+    if (!Builder || ForceRebuild) {
+        if (!BuilderClass) {
+            // TODO: Project Settingsでの指定
+            FString Path = "/UI_Blooman/B_FakeBloomUI_Builder.B_FakeBloomUI_Builder_C";
+            BuilderClass = TSoftClassPtr<UFakeBloomUI_Builder>(FSoftObjectPath(*Path)).LoadSynchronous();
         }
-        if (DriverClass) {
-            Driver = NewObject<UFakeBloomDriver>(this, DriverClass, TEXT("UFakeBloomDriver"));
-            Driver->SetWidget(this);
+        if (BuilderClass) {
+            Builder = NewObject<UFakeBloomUI_Builder>(this, BuilderClass, BuilderClass->GetFName());
+            Builder->SetParameter(&BuildParameter);
+
+        } else {
+            check(0);
         }
     }
-    return Driver;
+    return Builder;
 }
 
-bool UFakeBloom::IsDesignTime() const
+UFakeBloomUI_Painter* UFakeBloomUI::GetPainter(bool ForceRebuild)
+{
+    if (!Painter || ForceRebuild) {
+        if (!PainterClass) {
+            // TODO: Project Settingsでの指定
+            // B_FakeBloom_Builder
+            FString Path = "/UI_Blooman/B_FakeBloomUI_Painter.B_FakeBloomUI_Painter_C";
+            PainterClass = TSoftClassPtr<UFakeBloomUI_Painter>(FSoftObjectPath(*Path)).LoadSynchronous();
+        }
+        if (PainterClass) {
+            Painter = NewObject<UFakeBloomUI_Painter>(this, PainterClass, PainterClass->GetFName());
+            Painter->SetParameters(&BuildParameter, &PaintParameter);
+
+        } else {
+            check(0);
+        }
+    }
+    return Painter;
+}
+
+bool UFakeBloomUI::IsDesignTime() const
 {
 #if WITH_EDITOR
     return UWidget::IsDesignTime();

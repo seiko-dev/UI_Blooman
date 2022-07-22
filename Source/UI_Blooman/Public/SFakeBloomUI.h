@@ -6,11 +6,11 @@
 #include "Widgets/SCompoundWidget.h"
 #include "Widgets/SWidget.h"
 
-class UI_BLOOMAN_API SFakeBloom : public SCompoundWidget
+class UI_BLOOMAN_API SFakeBloomUI : public SCompoundWidget
 {
-    SLATE_DECLARE_WIDGET(SFakeBloom, SCompoundWidget)
+    SLATE_DECLARE_WIDGET(SFakeBloomUI, SCompoundWidget)
 public:
-    SLATE_BEGIN_ARGS(SFakeBloom)
+    SLATE_BEGIN_ARGS(SFakeBloomUI)
     {
         _Visibility = EVisibility::SelfHitTestInvisible;
     }
@@ -19,11 +19,13 @@ public:
     SLATE_END_ARGS()
 
 public:
-    SFakeBloom();
+    SFakeBloomUI();
     void Construct(const FArguments& InArgs);
-    void SetContent(const TSharedRef<SWidget>& InContent, class UFakeBloomDriver* InDriver);
+    void SetContent(const TSharedRef<SWidget>& InContent);
+    void SetDrivers(UFakeBloomUI_Builder* InBuilder, UFakeBloomUI_Painter* InPainter);
     virtual int32 OnPaint(const FPaintArgs& Args, const FGeometry& AllottedGeometry, const FSlateRect& MyCullingRect, FSlateWindowElementList& OutDrawElements, int32 LayerId, const FWidgetStyle& InWidgetStyle, bool bParentEnabled) const override;
 
 private:
-    UFakeBloomDriver* Driver;
+    TObjectPtr<class UFakeBloomUI_Builder> Builder;
+    TObjectPtr<class UFakeBloomUI_Painter> Painter;
 };

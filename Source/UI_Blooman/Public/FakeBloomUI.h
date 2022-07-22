@@ -4,215 +4,82 @@
 
 #include "CoreMinimal.h"
 #include "Components/ContentWidget.h"
-#include "FakeBloom.generated.h"
+#include "FakeBloomUI_Parameter.h"
+#include "FakeBloomUI.generated.h"
 
-
-USTRUCT(Blueprintable)
-struct UI_BLOOMAN_API FUI_BloomBuildParameter 
-{
-    GENERATED_BODY()
-public:
-    FUI_BloomBuildParameter()
-        : Overhang(16.0f)
-        , AlphaToLuminance(1.0f)
-        , LuminanceThreshold(0.0f)
-        , Strength(1.0f)
-        , Spead(1.0f)
-        , MaxMipLevel(5)
-        , Compression(1)
-        , BuildEveryFrame(false)
-    {
-    }
-
-    // Amount of bloom to draw outside the Widget.
-    UPROPERTY(BlueprintReadWrite, EditAnywhere, Interp, Category = "Build")
-    float Overhang;
-
-    // The closer to 1.0, the more only the brightest pixels bloom.
-    UPROPERTY(BlueprintReadWrite, EditAnywhere, Interp, Category = "Build", meta = (ClampMin = "0.0", ClampMax = "1.0", UIMin = "0.0", UIMax = "1.0"))
-    float AlphaToLuminance;
-
-    // Blooming transparency threshold.
-    UPROPERTY(BlueprintReadWrite, EditAnywhere, Interp, Category = "Build", meta = (ClampMin = "0.0", ClampMax = "1.0", UIMin = "0.0", UIMax = "1.0"))
-    float LuminanceThreshold;
-
-    // Adjust the strength of the bloom.
-    UPROPERTY(BlueprintReadWrite, EditAnywhere, Interp, Category = "Build")
-    float Strength;
-
-    // Fine-tune the bloom spread.
-    UPROPERTY(BlueprintReadWrite, EditAnywhere, Interp, Category = "Build")
-    float Spead;
-
-    // The larger this is, the higher level MipMap is used, and the wider the bloom.
-    UPROPERTY(BlueprintReadWrite, EditAnywhere, Interp, Category = "Build", meta = (ClampMin = "1", UIMin = "1"))
-    int32 MaxMipLevel;
-
-    // Final Texture Compression Strength
-    UPROPERTY(BlueprintReadWrite, EditAnywhere, Interp, Category = "Build", meta = (ClampMin = "1", UIMin = "1"))
-    int32 Compression;
-
-    UPROPERTY(BlueprintReadWrite, EditAnywhere, Interp, Category = "Build")
-    bool BuildEveryFrame;
-};
-
-USTRUCT(Blueprintable)
-struct UI_BLOOMAN_API FUI_BloomPaintParameter
-{
-    GENERATED_BODY()
-public:
-    FUI_BloomPaintParameter()
-        : TintColor(FLinearColor::White)
-        , SizeScale(1.0f, 1.0f)
-        , bUseTexture(false)
-        , BloomTexture(nullptr)
-    {
-    }
-
-    UPROPERTY(BlueprintReadWrite, EditAnywhere, Interp, Category = "Paint")
-    FLinearColor TintColor;
-
-    UPROPERTY(BlueprintReadWrite, EditAnywhere, Interp, Category = "Paint")
-    FVector2D SizeScale;
-
-    UPROPERTY(BlueprintReadWrite, EditAnywhere, Interp, Category = "Paint")
-    bool bUseTexture;
-
-    UPROPERTY(BlueprintReadWrite, EditAnywhere, Interp, Category = "Paint", meta = (EditCondition = "bUseTexture"))
-    UTexture2D* BloomTexture;
-};
-
-USTRUCT(Blueprintable)
-struct UI_BLOOMAN_API FFakeBloomPreProcessArgs
-{
-    GENERATED_BODY()
-public:
-    UPROPERTY(BlueprintReadOnly)
-    FGeometry Geometry;
-
-    FSlateRect CullingRect;
-
-    FFakeBloomPreProcessArgs()
-    {
-    }
-
-    FFakeBloomPreProcessArgs(const FGeometry& InGeometry, const FSlateRect& InCullingRect)
-        : Geometry(InGeometry)
-        , CullingRect(InCullingRect)
-    {}
-};
-
-
-UCLASS(Abstract, Blueprintable)
-class UI_BLOOMAN_API UFakeBloomDriver : public UObject
-{
-    GENERATED_BODY()
-public:
-    UFUNCTION(BlueprintImplementableEvent, BlueprintCosmetic, Category = "User Interface")
-        void OnRebuild();
-
-    UFUNCTION(BlueprintImplementableEvent, BlueprintCosmetic, Category = "User Interface")
-        void OnPaintPreProcess(const FFakeBloomPreProcessArgs& PreProcessArgs);
-
-    UFUNCTION(BlueprintImplementableEvent, BlueprintCosmetic, Category = "User Interface | Painting")
-        void OnPaint(UPARAM(ref) FPaintContext& Context, const FGeometry& Geometry) const;
-
-    UFUNCTION(BlueprintImplementableEvent, BlueprintCosmetic, Category = "Create Texture")
-        void RequestCreateNewTexture(const FString& Path);
-
-    UFUNCTION(BlueprintImplementableEvent, BlueprintCosmetic, Category = "Create Texture")
-        void RequestOverwriteTexture();
-
-public:
-    UFUNCTION(BlueprintCallable)
-    bool DrawWidgetToTarget(UTextureRenderTarget2D* Target,
-                            class UWidget* WidgetToRender,
-                            const FFakeBloomPreProcessArgs& PreProcessArgs,
-                            float Overhang,
-                            bool UseGamma,
-                            bool UpdateImmediate,
-                            int32& NumMips);
-
-    UFUNCTION(BlueprintCallable, Category = "Create Texture")
-    void NotifyCreateTextureFinished();
-
-    UFUNCTION(Category = "Painting", BlueprintCallable)
-    static void DrawSlateBrush(UPARAM(ref) FPaintContext& Context, const FSlateBrush& Brush);
-
-public:
-    UPROPERTY(BlueprintReadOnly, Category = "Fake Bloom")
-    UFakeBloom* Widget;
-
-public:
-    void SetWidget(UFakeBloom* InWidget) {
-        Widget = InWidget;
-    }
-
-private:
-    virtual class UWorld* GetWorld() const
-    {
-        if (!HasAnyFlags(RF_ClassDefaultObject) // CDOでは無効
-            && ensureMsgf(GetOuter(), TEXT("%s has a null OuterPrivate in GetWorld()"), *GetFullName()) // Outerあるよね？
-            && !GetOuter()->HasAnyFlags(RF_BeginDestroyed)  // Outer死にかけてたら無効
-            && !GetOuter()->IsUnreachable()) // Outerない事になってたら無効
-        {
-            return GetOuter()->GetWorld();
-        }
-        return nullptr;
-    }
-};
+class UFakeBloomUI_Builder;
+class UFakeBloomUI_Painter;
 
 /**
  * 
  */
-UCLASS()
-class UI_BLOOMAN_API UFakeBloom : public UContentWidget
+UCLASS(DisplayName = "Fake Bloom")
+class UI_BLOOMAN_API UFakeBloomUI : public UContentWidget
 {
     GENERATED_BODY()
 public:
-    UFakeBloom(const FObjectInitializer& ObjectInitializer);
+    UFakeBloomUI(const FObjectInitializer& ObjectInitializer);
 
     UFUNCTION(BlueprintCallable, Category = "Fake Bloom")
     UWidget* GetChildContent() const;
-
-    UFUNCTION(BlueprintCallable, Category = "Fake Bloom")
-    UFakeBloomDriver* GetDriver() const { return Driver; }
 
     UFUNCTION(BlueprintCallable, Category = "Fake Bloom")
     bool IsDesignTime() const;
 
 public:
     UPROPERTY(BlueprintReadWrite, EditAnywhere, Interp, Category = "Fake Bloom")
-    FUI_BloomBuildParameter BuildParameter;
+    FFakeBloomUI_BuildParameter BuildParameter;
 
     UPROPERTY(BlueprintReadWrite, EditAnywhere, Interp, Category = "Fake Bloom")
-    FUI_BloomPaintParameter PaintParameter;
+    FFakeBloomUI_PaintParameter PaintParameter;
 
-    UPROPERTY(BlueprintReadWrite, EditAnywhere, NoClear, AdvancedDisplay, Category = "Fake Bloom")
-    TSubclassOf<UFakeBloomDriver> DriverClass;
-
-
-#if WITH_EDITOR
-    DECLARE_DELEGATE(FCreateTextureCallBack);
-    FCreateTextureCallBack CreateTextureCallBack;
-
-    TSharedPtr<IPropertyHandle> PaintParamHandle;
-#endif
+    UPROPERTY(BlueprintReadWrite, EditAnywhere, Interp, Category = "Fake Bloom")
+    FFakeBloomUI_WriteParameter WriteParameter;
 
 public:
-    // UPanelWidget interface
-    virtual void ReleaseSlateResources(bool bReleaseChildren) override;
+    //-------------------------------------------------
+    UPROPERTY(BlueprintReadWrite, EditAnywhere, NoClear, AdvancedDisplay, Category = "Fake Bloom")
+    TSubclassOf<UFakeBloomUI_Builder> BuilderClass;
+
+    UPROPERTY(BlueprintReadOnly, Category = "Fake Bloom")
+    TObjectPtr<UFakeBloomUI_Builder> Builder;
+
+    UFakeBloomUI_Builder* GetBuilder(bool ForceRebuild = false);
+
+    //-------------------------------------------------
+    UPROPERTY(BlueprintReadWrite, EditAnywhere, NoClear, AdvancedDisplay, Category = "Fake Bloom")
+    TSubclassOf<UFakeBloomUI_Painter> PainterClass;
+
+    UPROPERTY(BlueprintReadOnly, Category = "Fake Bloom")
+    TObjectPtr<UFakeBloomUI_Painter> Painter;
+
+    UFakeBloomUI_Painter* GetPainter(bool ForceRebuild = false);
 
 #if WITH_EDITOR
+public:
     // UObject interface
     virtual void PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent) override;
 
     // UWidget interface
     virtual const FText GetPaletteCategory() override;
 
-    void RequestCreateNewTexture(const FString& Path);
-    void RequestOverwriteTexture();
-    void NotifyCreateTextureFinished();
+public:
+    // 本ClassにEditorSubSystemを意識させない為のDelegate
+    DECLARE_DELEGATE_OneParam(FCheckEditorCommand, UFakeBloomUI*);
+    FCheckEditorCommand CheckEditorCommand;
+
+    DECLARE_DELEGATE(FFinishEditorCommand);
+    FFinishEditorCommand FinishEditorCommand;
+
+    UFUNCTION() // AddDynamicする為に修飾が必要
+    void CreateNewTexture(UTextureRenderTarget2D* InRenderTarget);
+
+    UFUNCTION() // AddDynamicする為に修飾が必要
+    void OverwriteTexture(UTextureRenderTarget2D* InRenderTarget);
+
+    void OnFinishWriteJob();
+
+    FString TextureSavePath;
 #endif
 
 protected:
@@ -220,15 +87,10 @@ protected:
     virtual TSharedRef<SWidget> RebuildWidget() override;
 
     // UPanelWidget interface
+    virtual void ReleaseSlateResources(bool bReleaseChildren) override;
     virtual void OnSlotAdded(UPanelSlot* InSlot) override;
     virtual void OnSlotRemoved(UPanelSlot* InSlot) override;
 
-    UFakeBloomDriver* GetDriver(bool ForceRebuild=false);
-
-private:
-    UPROPERTY()
-    UFakeBloomDriver* Driver;
-
 protected:
-    TSharedPtr<class SFakeBloom> MyFakeBloom;
+    TSharedPtr<class SFakeBloomUI> MyFakeBloomUI;
 };

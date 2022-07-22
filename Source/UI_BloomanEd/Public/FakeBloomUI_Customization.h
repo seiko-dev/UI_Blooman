@@ -4,10 +4,10 @@
 
 #include "IDetailCustomization.h"
 
-class FFakeBloomCustomization : public IDetailCustomization
+class FFakeBloomUI_Customization : public IDetailCustomization
 {
 public:
-    FFakeBloomCustomization();
+    FFakeBloomUI_Customization();
 
     // Makes a new instance of this detail layout class for a specific detail view requesting it
     static TSharedRef<IDetailCustomization> MakeInstance();
@@ -22,15 +22,16 @@ private:
 
     bool HideOutline();
     void ToggleOutline();
-    void RestoreOutline();
+    void FinishCreateTexture();
     void TriggerCreateTextureCommand();
     
     TSharedPtr<SWidget> SearchNearestParentAssetEditor(TSharedPtr<SWidget> CurrentWidget);
     TSharedPtr<SWidget> SearchNearestChildDesignerView(TSharedPtr<SWidget> CurrentWidget);
 
 private:
-    TSharedPtr<IPropertyHandle> PaintParamHandle;
+    TSharedPtr<IPropertyHandle> UseTexHandle;
+    TSharedPtr<IPropertyHandle> TexHandle;
     TArray<TWeakObjectPtr<UObject>> SelectedObjects;
     TSharedPtr<class SWidget> DesignerView;
-    int32_t RestoreOutlineCounter;
+    int32_t TextureCreateWorkerNum;
 };

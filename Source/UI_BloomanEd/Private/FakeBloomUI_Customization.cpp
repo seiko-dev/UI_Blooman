@@ -1,11 +1,11 @@
 // Copyright seiko_dev. All Rights Reserved.
 
-#include "FakeBloomCustomization.h"
+#include "FakeBloomUI_Customization.h"
 #include "DetailCategoryBuilder.h"
 #include "DetailLayoutBuilder.h"
 #include "DetailWidgetRow.h"
 #include "Widgets/Input/SButton.h"
-#include "FakeBloom.h"
+#include "FakeBloomUI.h"
 #include "Widgets/Docking/SDockTab.h"
 #include "UI_BloomanEdSubsystem.h"
 #include "ContentBrowserModule.h"
@@ -175,18 +175,18 @@ private: // internal properties
 };
 
 
-FFakeBloomCustomization::FFakeBloomCustomization()
-    : RestoreOutlineCounter(0)
+FFakeBloomUI_Customization::FFakeBloomUI_Customization()
+    : TextureCreateWorkerNum(0)
 {
 
 }
 
-TSharedRef<IDetailCustomization> FFakeBloomCustomization::MakeInstance()
+TSharedRef<IDetailCustomization> FFakeBloomUI_Customization::MakeInstance()
 {
-    return MakeShareable(new FFakeBloomCustomization());
+    return MakeShareable(new FFakeBloomUI_Customization());
 }
 
-void FFakeBloomCustomization::CustomizeDetails(IDetailLayoutBuilder& DetailLayout)
+void FFakeBloomUI_Customization::CustomizeDetails(IDetailLayoutBuilder& DetailLayout)
 {
     // UI構築
     IDetailCategoryBuilder& Category = DetailLayout.EditCategory(TEXT("Fake Bloom"),
@@ -194,7 +194,7 @@ void FFakeBloomCustomization::CustomizeDetails(IDetailLayoutBuilder& DetailLayou
                                                                     ECategoryPriority::TypeSpecific);
     // Build
     {
-        Category.AddProperty(DetailLayout.GetProperty(GET_MEMBER_NAME_CHECKED(UFakeBloom, BuildParameter)));
+        Category.AddProperty(DetailLayout.GetProperty(GET_MEMBER_NAME_CHECKED(UFakeBloomUI, BuildParameter)));
 
         TSharedRef<SHorizontalBox> ButtonBox = SNew(SHorizontalBox)
             + SHorizontalBox::Slot()
@@ -203,7 +203,7 @@ void FFakeBloomCustomization::CustomizeDetails(IDetailLayoutBuilder& DetailLayou
             [
                 SNew(SButton)
                 .Text(FText::FromString(TEXT("Create New Texture")))
-            .OnClicked(this, &FFakeBloomCustomization::OnCreateNewTextureClicked)
+            .OnClicked(this, &FFakeBloomUI_Customization::OnCreateNewTextureClicked)
             ]
         + SHorizontalBox::Slot()
             .AutoWidth()
@@ -211,7 +211,7 @@ void FFakeBloomCustomization::CustomizeDetails(IDetailLayoutBuilder& DetailLayou
             [
                 SNew(SButton)
                 .Text(FText::FromString(TEXT("Overwrite Texture")))
-            .OnClicked(this, &FFakeBloomCustomization::OnOverwriteTextureClicked)
+            .OnClicked(this, &FFakeBloomUI_Customization::OnOverwriteTextureClicked)
             ];
 
         FDetailWidgetRow& ButtonRow = Category.AddCustomRow(FText::GetEmpty());
@@ -225,31 +225,31 @@ void FFakeBloomCustomization::CustomizeDetails(IDetailLayoutBuilder& DetailLayou
     {
         // 「プロパティ活性化チェックボックス + プロパティ実体」のセット。
         // なんかもっと簡単に作れそうだけど…
-        Category.AddProperty(DetailLayout.GetProperty(GET_MEMBER_NAME_CHECKED(UFakeBloom, PaintParameter.bUseTexture))).CustomWidget()
+        Category.AddProperty(DetailLayout.GetProperty(GET_MEMBER_NAME_CHECKED(UFakeBloomUI, PaintParameter.bUseTexture))).CustomWidget()
         .NameContent()
         [
             SNew(SHorizontalBox)
             + SHorizontalBox::Slot()
             .AutoWidth()
             [
-                DetailLayout.GetProperty(GET_MEMBER_NAME_CHECKED(UFakeBloom, PaintParameter.bUseTexture))->CreatePropertyValueWidget()
+                DetailLayout.GetProperty(GET_MEMBER_NAME_CHECKED(UFakeBloomUI, PaintParameter.bUseTexture))->CreatePropertyValueWidget()
             ]
             + SHorizontalBox::Slot()
             .Padding(4, 0)
             .AutoWidth()
             [
-                DetailLayout.GetProperty(GET_MEMBER_NAME_CHECKED(UFakeBloom, PaintParameter.bUseTexture))->CreatePropertyNameWidget()
+                DetailLayout.GetProperty(GET_MEMBER_NAME_CHECKED(UFakeBloomUI, PaintParameter.bUseTexture))->CreatePropertyNameWidget()
             ]
         ]
         .ValueContent()
         .VAlign(VAlign_Center)
         [
-            DetailLayout.GetProperty(GET_MEMBER_NAME_CHECKED(UFakeBloom, PaintParameter.BloomTexture))->CreatePropertyValueWidget()
+            DetailLayout.GetProperty(GET_MEMBER_NAME_CHECKED(UFakeBloomUI, PaintParameter.BloomTexture))->CreatePropertyValueWidget()
         ];
-        DetailLayout.HideProperty(DetailLayout.GetProperty(GET_MEMBER_NAME_CHECKED(UFakeBloom, PaintParameter.BloomTexture)));
+        DetailLayout.HideProperty(DetailLayout.GetProperty(GET_MEMBER_NAME_CHECKED(UFakeBloomUI, PaintParameter.BloomTexture)));
 
         // 残りのプロパティを追加
-        Category.AddProperty(DetailLayout.GetProperty(GET_MEMBER_NAME_CHECKED(UFakeBloom, PaintParameter)));
+        Category.AddProperty(DetailLayout.GetProperty(GET_MEMBER_NAME_CHECKED(UFakeBloomUI, PaintParameter)));
     }
 
     // Outline消しショトカ用にDesignerViewを探しておく
@@ -260,23 +260,22 @@ void FFakeBloomCustomization::CustomizeDetails(IDetailLayoutBuilder& DetailLayou
             TSharedPtr<SWidget> AssetEditor = SearchNearestParentAssetEditor(ActiveTab);
             DesignerView = SearchNearestChildDesignerView(AssetEditor);
         }
-
     }
 
-    // 
-    PaintParamHandle = DetailLayout.GetProperty(GET_MEMBER_NAME_CHECKED(UFakeBloom, PaintParameter));
+    UseTexHandle = DetailLayout.GetProperty(GET_MEMBER_NAME_CHECKED(UFakeBloomUI, PaintParameter.bUseTexture));
+    TexHandle = DetailLayout.GetProperty(GET_MEMBER_NAME_CHECKED(UFakeBloomUI, PaintParameter.BloomTexture));
     SelectedObjects = DetailLayout.GetSelectedObjects();
 
     // 遅延されていた命令があるなら、ここで実行
     TriggerCreateTextureCommand();
 }
 
-bool FFakeBloomCustomization::HideOutline()
+bool FFakeBloomUI_Customization::HideOutline()
 {
     // まず現状Outline表示状態なのか確認
     bool IsShowOutline(false);
     for (auto& Obj : SelectedObjects) {
-        if (UFakeBloom* Widget = Cast<UFakeBloom>(Obj.Get())) {
+        if (UFakeBloomUI* Widget = Cast<UFakeBloomUI>(Obj.Get())) {
             if(EnumHasAnyFlags(Widget->GetDesignerFlags(), EWidgetDesignFlags::ShowOutline)){
                 IsShowOutline = true;
                 break;
@@ -297,7 +296,7 @@ bool FFakeBloomCustomization::HideOutline()
     return true;
 }
 
-void FFakeBloomCustomization::ToggleOutline()
+void FFakeBloomUI_Customization::ToggleOutline()
 {
     if (!DesignerView.IsValid()) {
         return;
@@ -327,17 +326,43 @@ void FFakeBloomCustomization::ToggleOutline()
     FSlateApplication::Get().ProcessKeyDownEvent(KeyEvent);
 }
 
-void FFakeBloomCustomization::RestoreOutline()
+void FFakeBloomUI_Customization::FinishCreateTexture()
 {
-    --RestoreOutlineCounter;
+    UUI_BloomanEdSubsystem* SubSys = GEditor->GetEditorSubsystem<UUI_BloomanEdSubsystem>();
+    if (!SubSys) {
+        return;
+    }
 
-    if (RestoreOutlineCounter <= 0 ) {
-        ToggleOutline();
-        RestoreOutlineCounter = 0;
+    --TextureCreateWorkerNum;
+
+    if (TextureCreateWorkerNum <= 0) {
+        TextureCreateWorkerNum = 0;
+
+        // プロパティ変化をSlateに通知
+        if (TexHandle.IsValid()) {
+            UObject* Prop(nullptr);
+            if (TexHandle->GetValue(Prop) == FPropertyAccess::Result::Success) {
+                TexHandle->SetValue(Prop);
+            } else {
+                UE_LOG(LogTemp, Log, TEXT("%s: GetValue failed."), UTF8_TO_TCHAR(__func__));
+            }
+            if (UseTexHandle->GetValue(Prop) == FPropertyAccess::Result::Success) {
+                UseTexHandle->SetValue(Prop);
+            } else {
+                UE_LOG(LogTemp, Log, TEXT("%s: GetValue failed."), UTF8_TO_TCHAR(__func__));
+            }
+        }
+
+        if (SubSys->GetRequestRestoreShowOutline()) {
+            ToggleOutline();
+        }
+
+        // 全作業が終了したので、予約をリセット
+        SubSys->Reset();
     }
 }
 
-void FFakeBloomCustomization::TriggerCreateTextureCommand()
+void FFakeBloomUI_Customization::TriggerCreateTextureCommand()
 {
     UUI_BloomanEdSubsystem* SubSys = GEditor->GetEditorSubsystem<UUI_BloomanEdSubsystem>();
     if (!SubSys) {
@@ -352,40 +377,26 @@ void FFakeBloomCustomization::TriggerCreateTextureCommand()
     for (auto& Obj : SelectedObjects) {
         if (!Obj.IsValid()) continue;
 
-        UFakeBloom* Widget = Cast<UFakeBloom>(Obj.Get());
+        UFakeBloomUI* Widget = Cast<UFakeBloomUI>(Obj.Get());
         if (!Widget) continue;
 
-        Widget->PaintParamHandle = PaintParamHandle;
-
-        switch (Cmd) {
-        case UUI_BloomanEdSubsystem::ETexCreateCmd::CreateNew:
-            if (SelectedObjects.Num()==1) {
-                Widget->RequestCreateNewTexture(SubSys->GetSavePath());
-            }
-            break;
-
-        case UUI_BloomanEdSubsystem::ETexCreateCmd::Overwrite:
-            Widget->RequestOverwriteTexture();
-            break;
-
-        default:
-            check(0);
-            return;
-        }
-
-        // 自動Outline消しが発動していたら、全員の作業後に元に戻す予約
         if (SubSys->GetRequestRestoreShowOutline()) {
-            ++RestoreOutlineCounter;
-            Widget->CreateTextureCallBack.BindRaw(this, &FFakeBloomCustomization::RestoreOutline);
+            // Outline消しが発動した場合はWidget再構築の後にコマンド実行したい。
+            // RebuildWidgetでCallされるDelegateに作業をしておく
+            Widget->CheckEditorCommand.BindUObject(SubSys, &UUI_BloomanEdSubsystem::ExecuteReservedCommand);
+        } else {
+            // Outline消しが発動しなかった場合、この場で作業させる
+            SubSys->UUI_BloomanEdSubsystem::ExecuteReservedCommand(Widget);
         }
-    }
 
-    // 各Widgetに指示出しは終わったのでSubSystemへの予約は解除
-    SubSys->Reset();
+        // 全Widgetが作業を終えてから実行したい後始末の予約
+        ++TextureCreateWorkerNum;
+        Widget->FinishEditorCommand.BindRaw(this, &FFakeBloomUI_Customization::FinishCreateTexture);
+    }
 }
 
 // Slate階層を上りながらAssetEditorを探す
-TSharedPtr<SWidget> FFakeBloomCustomization::SearchNearestParentAssetEditor(TSharedPtr<SWidget> CurrentWidget)
+TSharedPtr<SWidget> FFakeBloomUI_Customization::SearchNearestParentAssetEditor(TSharedPtr<SWidget> CurrentWidget)
 {
     if (!CurrentWidget.IsValid()) {
         return nullptr;
@@ -407,7 +418,7 @@ TSharedPtr<SWidget> FFakeBloomCustomization::SearchNearestParentAssetEditor(TSha
 }
 
 // Slate階層を下りながらDesignerViewを探す
-TSharedPtr<SWidget> FFakeBloomCustomization::SearchNearestChildDesignerView(TSharedPtr<SWidget> CurrentWidget)
+TSharedPtr<SWidget> FFakeBloomUI_Customization::SearchNearestChildDesignerView(TSharedPtr<SWidget> CurrentWidget)
 {
     if (!CurrentWidget.IsValid()) {
         return nullptr;
@@ -440,7 +451,7 @@ TSharedPtr<SWidget> FFakeBloomCustomization::SearchNearestChildDesignerView(TSha
     return nullptr;
 }
 
-FReply FFakeBloomCustomization::OnCreateNewTextureClicked()
+FReply FFakeBloomUI_Customization::OnCreateNewTextureClicked()
 {
     // 保存先確認Dialog
     TSharedRef<SWindow> window = SNew(SWindow)
@@ -483,7 +494,7 @@ FReply FFakeBloomCustomization::OnCreateNewTextureClicked()
     return FReply::Handled();
 }
 
-FReply FFakeBloomCustomization::OnOverwriteTextureClicked()
+FReply FFakeBloomUI_Customization::OnOverwriteTextureClicked()
 {
 
     if (UUI_BloomanEdSubsystem* SubSys = GEditor->GetEditorSubsystem<UUI_BloomanEdSubsystem>()) {
