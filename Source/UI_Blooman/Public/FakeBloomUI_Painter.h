@@ -25,7 +25,7 @@ public:
     UFUNCTION(BlueprintCallable, BlueprintPure=false, Category = "User Interface | Painting")
     void DrawImageToCenter(UPARAM(ref) FPaintContext& Context,
                            UObject* Image,
-                           float Overhang,
+                           int32 Overhang,
                            const FVector2D& Scale,
                            const FLinearColor& TintColor ) const;
 

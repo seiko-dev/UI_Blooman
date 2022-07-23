@@ -24,8 +24,8 @@ public:
     }
 
     // Amount of bloom to draw outside the Widget.
-    UPROPERTY(BlueprintReadWrite, EditAnywhere, Interp, Category = "Build", meta = (ClampMin = "0.0", ClampMax = "2048", UIMin = "0.0", UIMax = "2048"))
-    float Overhang;
+    UPROPERTY(BlueprintReadWrite, EditAnywhere, Interp, Category = "Build", meta = (ClampMin = "0", ClampMax = "2048", UIMin = "0", UIMax = "256"))
+    int32 Overhang;
 
     // The closer to 1.0, the more only the brightest pixels bloom.
     UPROPERTY(BlueprintReadWrite, EditAnywhere, Interp, Category = "Build", meta = (ClampMin = "0.0", ClampMax = "1.0", UIMin = "0.0", UIMax = "1.0"))
@@ -49,7 +49,7 @@ public:
 
     // Final Texture Compression Strength
     // 0 is resereved for free texture size (not pad to power of 2) mode.
-    UPROPERTY(BlueprintReadWrite, EditAnywhere, Interp, Category = "Build", meta = (ClampMin = "1", UIMin = "1"))
+    UPROPERTY(BlueprintReadWrite, EditAnywhere, Interp, Category = "Build", meta = (ClampMin = "0", UIMin = "1"))
     int32 Compression;
 
     UPROPERTY(BlueprintReadWrite, EditAnywhere, Interp, Category = "Build")

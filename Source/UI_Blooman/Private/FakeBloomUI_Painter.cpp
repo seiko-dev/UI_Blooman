@@ -12,7 +12,7 @@ void UFakeBloomUI_Painter::SetParameters(const FFakeBloomUI_BuildParameter* InBu
 
 void UFakeBloomUI_Painter::DrawImageToCenter(FPaintContext& Context,
                                              UObject* Image,
-                                             float Overhang,
+                                             int32 Overhang,
                                              const FVector2D& Scale,
                                              const FLinearColor& TintColor) const
 {
