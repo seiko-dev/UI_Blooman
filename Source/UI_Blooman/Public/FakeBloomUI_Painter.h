@@ -11,28 +11,28 @@ class UI_BLOOMAN_API UFakeBloomUI_Painter : public UObject
 {
     GENERATED_BODY()
 public:
-    UFUNCTION(BlueprintImplementableEvent, Category = "Fale Bloom")
+    UFUNCTION(BlueprintImplementableEvent, Category = "Painter")
     void OnRebuild();
 
     void SetParameters(const FFakeBloomUI_BuildParameter* InBuildParameter, const FFakeBloomUI_PaintParameter* InPaintParameter);
 
-    UFUNCTION(BlueprintImplementableEvent)
+    UFUNCTION(BlueprintImplementableEvent, Category = "Painter")
     void SetRenderTexture(UTextureRenderTarget2D* InRenderTexture);
 
-    UFUNCTION(BlueprintImplementableEvent, BlueprintCosmetic, Category = "User Interface | Painting")
+    UFUNCTION(BlueprintImplementableEvent, BlueprintCosmetic, Category = "Painter")
     void OnPaint(UPARAM(ref) FPaintContext& Context) const;
 
-    UFUNCTION(BlueprintCallable, BlueprintPure=false, Category = "User Interface | Painting")
+    UFUNCTION(BlueprintCallable, BlueprintPure=false, Category = "Painter")
     void DrawImageToCenter(UPARAM(ref) FPaintContext& Context,
                            UObject* Image,
                            int32 Overhang,
                            const FVector2D& Scale,
                            const FLinearColor& TintColor ) const;
 
-    UFUNCTION(BlueprintCallable, Category = "Fale Bloom")
+    UFUNCTION(BlueprintCallable, Category = "Painter")
     const FFakeBloomUI_BuildParameter& GetBuildParameter() const;
 
-    UFUNCTION(BlueprintCallable, Category = "Fale Bloom")
+    UFUNCTION(BlueprintCallable, Category = "Painter")
     const FFakeBloomUI_PaintParameter& GetPaintParameter() const;
 
 protected:

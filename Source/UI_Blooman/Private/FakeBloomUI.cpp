@@ -45,6 +45,11 @@ void UFakeBloomUI::PostEditChangeProperty(FPropertyChangedEvent& PropertyChanged
             if (Builder) {
                 Builder->OnRequestRedraw();
             }
+
+            // PainterもbUseTextureの状態を反映させたいので作り直し
+            if (Painter) {
+                Painter->OnRebuild();
+            }
         }
     }
 }
@@ -86,6 +91,10 @@ void UFakeBloomUI::OverwriteTexture(UTextureRenderTarget2D* InRenderTarget)
         GetWorld(),
         InRenderTarget,
         PaintParameter.BloomTexture);
+
+    // 圧縮設定も上書き
+    PaintParameter.BloomTexture->CompressionSettings = WriteParameter.Format;
+    PaintParameter.BloomTexture->PostEditChange();
 
     OnFinishWriteJob();
 }
@@ -170,7 +179,7 @@ UFakeBloomUI_Builder* UFakeBloomUI::GetBuilder(bool ForceRebuild)
         }
         if (BuilderClass) {
             Builder = NewObject<UFakeBloomUI_Builder>(this, BuilderClass, BuilderClass->GetFName());
-            Builder->SetParameter(&BuildParameter);
+            Builder->SetParameters(&BuildParameter, &PaintParameter);
 
         } else {
             check(0);
