@@ -53,7 +53,7 @@ public:
     bool DrawWidgetToTarget(UTextureRenderTarget2D* Target,
                             class UWidget* WidgetToRender,
                             const FFakeBloomUI_PreProcessArgs& PreProcessArgs,
-                            float Overhang,
+                            int32 Overhang,
                             bool UseGamma,
                             bool UpdateImmediate) const;
 

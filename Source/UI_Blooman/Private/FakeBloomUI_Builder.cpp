@@ -16,7 +16,12 @@ void UFakeBloomUI_Builder::SetParameter(FFakeBloomUI_BuildParameter* Param)
     BuildParameter = Param;
 }
 
-bool UFakeBloomUI_Builder::DrawWidgetToTarget(UTextureRenderTarget2D* Target, class UWidget* WidgetToRender, const FFakeBloomUI_PreProcessArgs& PreProcessArgs, float Overhang, bool UseGamma, bool UpdateImmediate) const
+bool UFakeBloomUI_Builder::DrawWidgetToTarget(UTextureRenderTarget2D* Target,
+                                              class UWidget* WidgetToRender,
+                                              const FFakeBloomUI_PreProcessArgs& PreProcessArgs,
+                                              int32 Overhang,
+                                              bool UseGamma,
+                                              bool UpdateImmediate) const
 {
     const FVector2D& LocalSize = PreProcessArgs.Geometry.GetLocalSize();
 
