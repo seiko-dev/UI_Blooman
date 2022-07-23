@@ -6,6 +6,20 @@
 #include "Engine/TextureDefines.h"
 #include "FakeBloomUI_Parameter.generated.h"
 
+
+UENUM(BlueprintType)
+enum class EFakeBloomUI_BuildPhase : uint8
+{
+    // If no bloom texture use, build only once when creating the widget.
+    AtCreate,       
+
+    // Same as "AtCreate" in game, but always builds in Widget Designer. 
+    AtDesignTime,   
+
+    // Always build in game. *Note the impact on performance!*
+    Always,         
+};
+
 USTRUCT(Blueprintable)
 struct UI_BLOOMAN_API FFakeBloomUI_BuildParameter
 {
@@ -19,7 +33,7 @@ public:
         , Spead(1.0f)
         , MaxMipLevel(5)
         , Compression(1)
-        , BuildEveryFrame(false)
+        , BuildPhase(EFakeBloomUI_BuildPhase::AtDesignTime)
     {
     }
 
@@ -53,7 +67,7 @@ public:
     int32 Compression;
 
     UPROPERTY(BlueprintReadWrite, EditAnywhere, Interp, Category = "Build")
-    bool BuildEveryFrame;
+    EFakeBloomUI_BuildPhase BuildPhase;
 };
 
 USTRUCT(Blueprintable)

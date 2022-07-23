@@ -7,13 +7,16 @@
 #include "Engine/TextureRenderTarget2D.h"
 
 UFakeBloomUI_Builder::UFakeBloomUI_Builder()
-    :BuildParameter(nullptr)
+    : TargetWidget(nullptr)
+    , BuildParameter(nullptr)
+    , PaintParameter(nullptr)
 {
 }
 
-void UFakeBloomUI_Builder::SetParameter(FFakeBloomUI_BuildParameter* Param)
+void UFakeBloomUI_Builder::SetParameters(FFakeBloomUI_BuildParameter* InBuild, FFakeBloomUI_PaintParameter* InPaint)
 {
-    BuildParameter = Param;
+    BuildParameter = InBuild;
+    PaintParameter = InPaint;
 }
 
 bool UFakeBloomUI_Builder::DrawWidgetToTarget(UTextureRenderTarget2D* Target,
@@ -136,6 +139,36 @@ int32 UFakeBloomUI_Builder::GetRenderTargetMipMapNum(UTextureRenderTarget2D* Tar
     return -1;
 }
 
+const FFakeBloomUI_BuildParameter& UFakeBloomUI_Builder::GetBuildParameter() const
+{
+    if (BuildParameter) {
+        return *BuildParameter;
+    }
+
+    ensure(0);
+    static FFakeBloomUI_BuildParameter Dummy;
+    return Dummy;
+}
+
+const FFakeBloomUI_PaintParameter& UFakeBloomUI_Builder::GetPaintParameter() const
+{
+    if (PaintParameter) {
+        return *PaintParameter;
+    }
+
+    ensure(0);
+    static FFakeBloomUI_PaintParameter Dummy;
+    return Dummy;
+}
+
+bool UFakeBloomUI_Builder::IsDesignTime() const
+{
+    if (TargetWidget) {
+        return TargetWidget->IsDesignTime();
+    }
+    return false;
+}
+
 class UWorld* UFakeBloomUI_Builder::GetWorld() const
 {
     if (!HasAnyFlags(RF_ClassDefaultObject) // CDOでは無効
@@ -146,15 +179,4 @@ class UWorld* UFakeBloomUI_Builder::GetWorld() const
         return GetOuter()->GetWorld();
     }
     return nullptr;
-}
-
-const FFakeBloomUI_BuildParameter& UFakeBloomUI_Builder::GetBuildParameter() const
-{
-    if (BuildParameter) {
-        return *BuildParameter;
-    }
-
-    ensure(0);
-    static FFakeBloomUI_BuildParameter Dummy;
-    return Dummy;
 }

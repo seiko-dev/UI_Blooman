@@ -34,7 +34,7 @@ class UI_BLOOMAN_API UFakeBloomUI_Builder : public UObject
 public:
     UFakeBloomUI_Builder();
 
-    void SetParameter(FFakeBloomUI_BuildParameter* Param);
+    void SetParameters(FFakeBloomUI_BuildParameter* InBuild, FFakeBloomUI_PaintParameter* InPaint);
     
     UPROPERTY(BlueprintReadOnly, Category = "Builder")
     TObjectPtr<UWidget> TargetWidget;
@@ -60,8 +60,14 @@ public:
     UFUNCTION(BlueprintCallable, Category = "Builder")
     const FFakeBloomUI_BuildParameter& GetBuildParameter() const;
 
+    UFUNCTION(BlueprintCallable, Category = "Builder")
+    const FFakeBloomUI_PaintParameter& GetPaintParameter() const;
+
     UFUNCTION(BlueprintPure, Category = "Builder")
     static int32 GetRenderTargetMipMapNum(UTextureRenderTarget2D* Target);
+
+    UFUNCTION(BlueprintPure, Category = "Builder")
+    bool IsDesignTime() const;
 
 public:
     DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnFinishBuild, UTextureRenderTarget2D*, ResultRT);
@@ -73,4 +79,5 @@ protected:
 
 protected:
     TObjectPtr<FFakeBloomUI_BuildParameter> BuildParameter;
+    TObjectPtr<FFakeBloomUI_PaintParameter> PaintParameter; // UseTexならBuildしたくない
 };
