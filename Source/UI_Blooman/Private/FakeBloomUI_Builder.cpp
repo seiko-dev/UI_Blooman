@@ -7,16 +7,16 @@
 #include "Engine/TextureRenderTarget2D.h"
 
 UFakeBloomUI_Builder::UFakeBloomUI_Builder()
-    : TargetWidget(nullptr)
-    , BuildParameter(nullptr)
-    , PaintParameter(nullptr)
+    : CommonParameter(nullptr)
+    , AlphaToLuminance(1.0f)
+    , LuminanceThreshold(0.0f)
+    , Strength(1.0f)
+    , Spread(1.0f)
+    , MaxMipLevel(5)
+    , Compression(1)
+    , BuildPhase(EFakeBloomUI_BuildPhase::AtDesignTime)
+    , TargetWidget(nullptr)
 {
-}
-
-void UFakeBloomUI_Builder::SetParameters(FFakeBloomUI_BuildParameter* InBuild, FFakeBloomUI_PaintParameter* InPaint)
-{
-    BuildParameter = InBuild;
-    PaintParameter = InPaint;
 }
 
 bool UFakeBloomUI_Builder::DrawWidgetToTarget(UTextureRenderTarget2D* Target,
@@ -137,28 +137,6 @@ int32 UFakeBloomUI_Builder::GetRenderTargetMipMapNum(UTextureRenderTarget2D* Tar
         return Target->GetNumMips();
     }
     return -1;
-}
-
-const FFakeBloomUI_BuildParameter& UFakeBloomUI_Builder::GetBuildParameter() const
-{
-    if (BuildParameter) {
-        return *BuildParameter;
-    }
-
-    ensure(0);
-    static FFakeBloomUI_BuildParameter Dummy;
-    return Dummy;
-}
-
-const FFakeBloomUI_PaintParameter& UFakeBloomUI_Builder::GetPaintParameter() const
-{
-    if (PaintParameter) {
-        return *PaintParameter;
-    }
-
-    ensure(0);
-    static FFakeBloomUI_PaintParameter Dummy;
-    return Dummy;
 }
 
 bool UFakeBloomUI_Builder::IsDesignTime() const

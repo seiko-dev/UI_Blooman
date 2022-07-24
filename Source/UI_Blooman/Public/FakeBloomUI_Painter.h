@@ -6,15 +6,25 @@
 
 // Paint the Image Object specified by the parameter.
 // PainterがUIに塗り、WriterがStatic Textureに書き出す。
-UCLASS(Abstract, Blueprintable)
+UCLASS(Abstract, Blueprintable, EditInlineNew)
 class UI_BLOOMAN_API UFakeBloomUI_Painter : public UObject
 {
     GENERATED_BODY()
 public:
+    UPROPERTY(BlueprintReadOnly, Category = "Parameter")
+         TObjectPtr<const UFakeBloomUI_CommonParameter> CommonParameter;
+
+    UPROPERTY(BlueprintReadWrite, EditAnywhere, Interp, Category = "Parameter")
+        FLinearColor TintColor;
+
+    UPROPERTY(BlueprintReadWrite, EditAnywhere, Interp, Category = "Parameter")
+        FVector2D SizeScale;
+
+public:
+    UFakeBloomUI_Painter();
+
     UFUNCTION(BlueprintImplementableEvent, Category = "Painter")
     void OnRebuild();
-
-    void SetParameters(const FFakeBloomUI_BuildParameter* InBuildParameter, const FFakeBloomUI_PaintParameter* InPaintParameter);
 
     UFUNCTION(BlueprintImplementableEvent, Category = "Painter")
     void SetRenderTexture(UTextureRenderTarget2D* InRenderTexture);
@@ -23,21 +33,13 @@ public:
     void OnPaint(UPARAM(ref) FPaintContext& Context) const;
 
     UFUNCTION(BlueprintCallable, BlueprintPure=false, Category = "Painter")
-    void DrawImageToCenter(UPARAM(ref) FPaintContext& Context,
-                           UObject* Image,
-                           int32 Overhang,
-                           const FVector2D& Scale,
-                           const FLinearColor& TintColor ) const;
+    static void DrawImageToCenter(UPARAM(ref) FPaintContext& Context,
+                                  UObject* Image,
+                                  int32 Overhang,
+                                  const FVector2D& InSizeScale,
+                                  const FLinearColor& InTintColor);
 
-    UFUNCTION(BlueprintCallable, Category = "Painter")
-    const FFakeBloomUI_BuildParameter& GetBuildParameter() const;
-
-    UFUNCTION(BlueprintCallable, Category = "Painter")
-    const FFakeBloomUI_PaintParameter& GetPaintParameter() const;
 
 protected:
     virtual class UWorld* GetWorld() const;
-
-    TObjectPtr<const FFakeBloomUI_BuildParameter> BuildParameter; // Overhangが欲しい
-    TObjectPtr<const FFakeBloomUI_PaintParameter> PaintParameter;
 };

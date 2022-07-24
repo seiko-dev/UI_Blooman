@@ -30,7 +30,7 @@ private:
 
 private:
     TSharedPtr<IPropertyHandle> UseTexHandle;
-    TSharedPtr<IPropertyHandle> TexHandle;
+    TSharedPtr<IPropertyHandle> TextureHandle;
     TArray<TWeakObjectPtr<UObject>> SelectedObjects;
     TSharedPtr<class SWidget> DesignerView;
     int32_t TextureCreateWorkerNum;

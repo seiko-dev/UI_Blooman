@@ -3,20 +3,20 @@
 #include "FakeBloomUI_Painter.h"
 #include "FakeBloomUI_Parameter.h"
 
-void UFakeBloomUI_Painter::SetParameters(const FFakeBloomUI_BuildParameter* InBuildParameter,
-                                         const FFakeBloomUI_PaintParameter* InPaintParameter)
+UFakeBloomUI_Painter::UFakeBloomUI_Painter()
+    : CommonParameter(nullptr)
+    , TintColor(FLinearColor::White)
+    , SizeScale(1.0f, 1.0f)
 {
-    BuildParameter = InBuildParameter;
-    PaintParameter = InPaintParameter;
 }
 
 void UFakeBloomUI_Painter::DrawImageToCenter(FPaintContext& Context,
                                              UObject* Image,
                                              int32 Overhang,
-                                             const FVector2D& Scale,
-                                             const FLinearColor& TintColor) const
+                                             const FVector2D& InSizeScale,
+                                             const FLinearColor& InTintColor)
 {
-    FVector2D Size = (Context.AllottedGeometry.GetLocalSize() + 2*Overhang)*Scale;
+    FVector2D Size = (Context.AllottedGeometry.GetLocalSize() + 2*Overhang)* InSizeScale;
     FVector2D Position = (Context.AllottedGeometry.GetLocalSize() - Size) * 0.5f;
     FSlateBrush Brush;
     Brush.SetResourceObject(Image);
@@ -27,7 +27,7 @@ void UFakeBloomUI_Painter::DrawImageToCenter(FPaintContext& Context,
         Context.AllottedGeometry.ToPaintGeometry(Position, Size),
         &Brush,
         ESlateDrawEffect::None,
-        TintColor);
+        InTintColor);
 
     Context.MaxLayer++;
 }
@@ -42,26 +42,4 @@ class UWorld* UFakeBloomUI_Painter::GetWorld() const
         return GetOuter()->GetWorld();
     }
     return nullptr;
-}
-
-const FFakeBloomUI_BuildParameter& UFakeBloomUI_Painter::GetBuildParameter() const
-{
-    if (BuildParameter) {
-        return *BuildParameter;
-    }
-
-    ensure(0);
-    static FFakeBloomUI_BuildParameter Dummy;
-    return Dummy;
-}
-
-const FFakeBloomUI_PaintParameter& UFakeBloomUI_Painter::GetPaintParameter() const
-{
-    if (PaintParameter) {
-        return *PaintParameter;
-    }
-
-    ensure(0);
-    static FFakeBloomUI_PaintParameter Dummy;
-    return Dummy;
 }

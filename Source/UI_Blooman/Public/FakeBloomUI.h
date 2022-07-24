@@ -27,33 +27,23 @@ public:
     bool IsDesignTime() const;
 
 public:
-    UPROPERTY(BlueprintReadWrite, EditAnywhere, Interp, Category = "Fake Bloom")
-    FFakeBloomUI_BuildParameter BuildParameter;
+    UPROPERTY(BlueprintReadOnly, EditAnywhere, Instanced, NoClear, Interp, Category = "Fake Bloom")
+    TObjectPtr<UFakeBloomUI_CommonParameter> CommonParameter;
 
-    UPROPERTY(BlueprintReadWrite, EditAnywhere, Interp, Category = "Fake Bloom")
-    FFakeBloomUI_PaintParameter PaintParameter;
-
-    UPROPERTY(BlueprintReadWrite, EditAnywhere, Interp, Category = "Fake Bloom")
-    FFakeBloomUI_WriteParameter WriteParameter;
-
-public:
-    //-------------------------------------------------
-    UPROPERTY(BlueprintReadWrite, EditAnywhere, NoClear, AdvancedDisplay, Category = "Fake Bloom")
-    TSubclassOf<UFakeBloomUI_Builder> BuilderClass;
-
-    UPROPERTY(BlueprintReadOnly, Category = "Fake Bloom")
+    UPROPERTY(BlueprintReadOnly, EditAnywhere, Instanced, NoClear, Interp, Category = "Fake Bloom")
     TObjectPtr<UFakeBloomUI_Builder> Builder;
 
-    UFakeBloomUI_Builder* GetBuilder(bool ForceRebuild = false);
-
     //-------------------------------------------------
-    UPROPERTY(BlueprintReadWrite, EditAnywhere, NoClear, AdvancedDisplay, Category = "Fake Bloom")
-    TSubclassOf<UFakeBloomUI_Painter> PainterClass;
-
-    UPROPERTY(BlueprintReadOnly, Category = "Fake Bloom")
+    UPROPERTY(BlueprintReadOnly, EditAnywhere, Instanced, NoClear, Interp, Category = "Fake Bloom")
     TObjectPtr<UFakeBloomUI_Painter> Painter;
 
-    UFakeBloomUI_Painter* GetPainter(bool ForceRebuild = false);
+#if WITH_EDITORONLY_DATA
+    UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Fake Bloom")
+    TEnumAsByte<enum TextureCompressionSettings> TextureFormat;
+
+    UPROPERTY()
+    FString TextureSavePath;
+#endif
 
 #if WITH_EDITOR
 public:
@@ -79,7 +69,6 @@ public:
 
     void OnFinishWriteJob();
 
-    FString TextureSavePath;
 #endif
 
 protected:
