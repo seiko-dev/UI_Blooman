@@ -2,6 +2,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "FakeBloomUI_Parameter.h"
 #include "FakeBloomUI_Painter.generated.h"
 
 // Paint the Image Object specified by the parameter.
@@ -11,34 +12,35 @@ class UI_BLOOMAN_API UFakeBloomUI_Painter : public UObject
 {
     GENERATED_BODY()
 public:
-    UPROPERTY(BlueprintReadOnly, Category = "Parameter")
-         TObjectPtr<const UFakeBloomUI_CommonParameter> CommonParameter;
-
-    UPROPERTY(BlueprintReadWrite, EditAnywhere, Interp, Category = "Parameter")
-        FLinearColor TintColor;
-
-    UPROPERTY(BlueprintReadWrite, EditAnywhere, Interp, Category = "Parameter")
-        FVector2D SizeScale;
-
-public:
     UFakeBloomUI_Painter();
 
     UFUNCTION(BlueprintImplementableEvent, Category = "Painter")
     void OnRebuild();
 
     UFUNCTION(BlueprintImplementableEvent, Category = "Painter")
-    void SetRenderTexture(UTextureRenderTarget2D* InRenderTexture);
+    void OnPaintPreProcess();
 
     UFUNCTION(BlueprintImplementableEvent, BlueprintCosmetic, Category = "Painter")
     void OnPaint(UPARAM(ref) FPaintContext& Context) const;
 
     UFUNCTION(BlueprintCallable, BlueprintPure=false, Category = "Painter")
     static void DrawImageToCenter(UPARAM(ref) FPaintContext& Context,
-                                  UObject* Image,
-                                  int32 Overhang,
+                                  int32 OverhangX,
+                                  int32 OverhangY,
                                   const FVector2D& InSizeScale,
-                                  const FLinearColor& InTintColor);
+                                  const FSlateBrush& Brush);
 
+    UFUNCTION(BlueprintImplementableEvent, Category = "Painter")
+        void SetRenderTexture(UTextureRenderTarget2D* InRenderTexture);
+
+public:
+    TObjectPtr<UFakeBloomUI> FakeBloomUI;
+
+    UFUNCTION(BlueprintPure, Category = "Parameter")
+    bool IsUsingValidTexture() const;
+
+    UFUNCTION(BlueprintPure, Category = "Parameter")
+    const FFakeBloomUI_BaseParameter& GetBaseParameter() const;
 
 protected:
     virtual class UWorld* GetWorld() const;

@@ -7,8 +7,7 @@
 #include "Engine/TextureRenderTarget2D.h"
 
 UFakeBloomUI_Builder::UFakeBloomUI_Builder()
-    : CommonParameter(nullptr)
-    , AlphaToLuminance(1.0f)
+    : AlphaToLuminance(1.0f)
     , LuminanceThreshold(0.0f)
     , Strength(1.0f)
     , Spread(1.0f)
@@ -22,7 +21,8 @@ UFakeBloomUI_Builder::UFakeBloomUI_Builder()
 bool UFakeBloomUI_Builder::DrawWidgetToTarget(UTextureRenderTarget2D* Target,
                                               class UWidget* WidgetToRender,
                                               const FFakeBloomUI_PreProcessArgs& PreProcessArgs,
-                                              int32 Overhang,
+                                              int32 OverhangX,
+                                              int32 OverhangY,
                                               bool UseGamma,
                                               bool UpdateImmediate) const
 {
@@ -48,7 +48,7 @@ bool UFakeBloomUI_Builder::DrawWidgetToTarget(UTextureRenderTarget2D* Target,
     check(WidgetRenderer);
 
     {
-        const FVector2D DrawOffset(Overhang, Overhang);
+        const FVector2D DrawOffset(OverhangX, OverhangY);
         WidgetRenderer->SetIsPrepassNeeded(false); // Paintで先に描画済み(Layout計算済み)なのでPrepass不要
 
 #if 1 /* Niagara UI Renderer対応実装 */

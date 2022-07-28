@@ -194,11 +194,11 @@ void FFakeBloomUI_Customization::CustomizeDetails(IDetailLayoutBuilder& DetailLa
                                                                     ECategoryPriority::TypeSpecific);
     // Common
     {
-        TSharedPtr<IPropertyHandle> CommonParamHandle = DetailLayout.GetProperty(GET_MEMBER_NAME_CHECKED(UFakeBloomUI, CommonParameter));
-        UseTexHandle = CommonParamHandle->GetChildHandle(FName("bUseTexture"));
-        TextureHandle = CommonParamHandle->GetChildHandle(FName("BloomTexture"));
+        TSharedPtr<IPropertyHandle> BaseParamHandle = DetailLayout.GetProperty(GET_MEMBER_NAME_CHECKED(UFakeBloomUI, BaseParameter));
+        UseTexHandle = BaseParamHandle->GetChildHandle(FName("bUseTexture"));
+        TextureHandle = BaseParamHandle->GetChildHandle(FName("BloomTexture"));
 
-        Category.AddProperty(CommonParamHandle);
+        Category.AddProperty(BaseParamHandle);
     }
 
     // Builder & Static Texture Create
@@ -380,7 +380,7 @@ void FFakeBloomUI_Customization::FinishCreateTexture()
         }
 
         // 全作業が終了したので、予約をリセット
-        SubSys->Reset();
+        SubSys->ResetTextureSaveParam();
     }
 }
 

@@ -8,6 +8,7 @@
 #if WITH_EDITOR
 #include "Kismet/KismetRenderingLibrary.h"
 #endif
+#include "AssetRegistry/AssetRegistryModule.h"
 
 #define LOCTEXT_NAMESPACE "UI_BLOOMAN"
 
@@ -19,7 +20,18 @@ UFakeBloomUI::UFakeBloomUI(const FObjectInitializer& ObjectInitializer)
     bIsVariable = true;
     Visibility = ESlateVisibility::SelfHitTestInvisible;
 
-    CommonParameter = CreateDefaultSubobject<UFakeBloomUI_CommonParameter>(UFakeBloomUI_CommonParameter::StaticClass()->GetFName());
+    {
+        // TODO: Project Settingsでの指定
+        FString Path = "/UI_Blooman/M_FakeBloomUI_PaintAdditive.M_FakeBloomUI_PaintAdditive";
+
+        FAssetRegistryModule& AssetRegistryModule = FModuleManager::LoadModuleChecked<FAssetRegistryModule>("AssetRegistry");
+        FAssetData AssetData = AssetRegistryModule.Get().GetAssetByObjectPath(FName(*Path));
+        
+        // 同期読込
+        if (UObject* PaintMaterial = AssetData.GetAsset()) {
+            BaseParameter.Brush.SetResourceObject(PaintMaterial);
+        }
+    }
 
     {
         // TODO: Project Settingsでの指定
@@ -54,6 +66,21 @@ UWidget* UFakeBloomUI::GetChildContent() const
     return GetContentSlot()->Content;
 }
 
+void UFakeBloomUI::OnPaintPreProcess(const FFakeBloomUI_PreProcessArgs& args)
+{
+    if(Painter && Builder){
+        Painter->OnPaintPreProcess(); // 先にPainterにRender Targetの受け取りを準備させる必要がある
+        Builder->OnPaintPreProcess(args);
+    }
+}
+
+void UFakeBloomUI::OnPaint(FPaintContext& Context)
+{
+    if (Painter) {
+        Painter->OnPaint(Context);
+    }
+}
+
 void UFakeBloomUI::ReleaseSlateResources(bool bReleaseChildren)
 {
     Super::ReleaseSlateResources(bReleaseChildren);
@@ -70,16 +97,15 @@ void UFakeBloomUI::PostEditChangeProperty(FPropertyChangedEvent& PropertyChanged
         TSharedPtr<SWidget> SafeWidget = GetCachedWidget();
         if (SafeWidget.IsValid())
         {
-            // 別のDriverに差し替えている事を考慮して再セット
-            MyFakeBloomUI->SetDrivers(Builder, Painter);
-
             if (Builder && Painter) {
-                // 変更したプロパティ値に対応してRender Targetを作り直させたいので再描画
-                Builder->CommonParameter = CommonParameter;
-                Builder->OnRequestRedraw();
+                // 変更した(かもしれない)パラメータ反映
+                Builder->BaseParameter = BaseParameter;
+                Painter->FakeBloomUI = this;
+
+                // 新しいパラメータ対応でRender Targetを作り直させたいので再描画
+                Builder->OnRequestRedraw();                 
 
                 // PainterもbUseTextureの状態を反映させたいので作り直し
-                Painter->CommonParameter = CommonParameter;
                 Painter->OnRebuild();
 
                 // どっちかが差し替えられている可能性もあるので、
@@ -113,8 +139,8 @@ void UFakeBloomUI::CreateNewTexture(UTextureRenderTarget2D* InRenderTarget)
         TextureMipGenSettings::TMGS_NoMipmaps);
 
     if (Tex) {
-        CommonParameter->bUseTexture = true;
-        CommonParameter->BloomTexture = Tex;
+        BaseParameter.bUseTexture = true;
+        BaseParameter.BloomTexture = Tex;
     }
 
     OnFinishWriteJob();
@@ -124,15 +150,15 @@ void UFakeBloomUI::OverwriteTexture(UTextureRenderTarget2D* InRenderTarget)
 {
     Builder->OnFinishBuild.RemoveDynamic(this, &UFakeBloomUI::OverwriteTexture);
 
-    if (CommonParameter->BloomTexture) {
+    if (BaseParameter.BloomTexture) {
         UKismetRenderingLibrary::ConvertRenderTargetToTexture2DEditorOnly(
         GetWorld(),
         InRenderTarget,
-        CommonParameter->BloomTexture);
+        BaseParameter.BloomTexture);
 
         // 圧縮設定も上書き
-        CommonParameter->BloomTexture->CompressionSettings = TextureFormat;
-        CommonParameter->BloomTexture->PostEditChange();
+        BaseParameter.BloomTexture->CompressionSettings = TextureFormat;
+        BaseParameter.BloomTexture->PostEditChange();
     }
 
     OnFinishWriteJob();
@@ -150,8 +176,8 @@ TSharedRef<SWidget> UFakeBloomUI::RebuildWidget()
 {
     if (Builder && Painter) {
         // OnReBuildがCommonParameterを使うので先に参照を付与
-        Builder->CommonParameter = CommonParameter;
-        Painter->CommonParameter = CommonParameter;
+        Builder->BaseParameter = BaseParameter;
+        Painter->FakeBloomUI = this;
    
         Builder->OnRebuild();
         Painter->OnRebuild();
@@ -171,7 +197,7 @@ TSharedRef<SWidget> UFakeBloomUI::RebuildWidget()
     }
 
     MyFakeBloomUI = SNew(SFakeBloomUI);
-    MyFakeBloomUI->SetDrivers(Builder, Painter);
+    MyFakeBloomUI->SetWidget(this);
 
     // Add any existing content to the new slate box
     if (GetChildrenCount() > 0)
@@ -216,5 +242,11 @@ bool UFakeBloomUI::IsDesignTime() const
     return false;
 #endif
 }
+
+//void UFakeBloomUI::SetPainter(float Value)
+//{
+//    //Painter->TintColor = In->TintColor;
+//    UE_LOG(LogTemp, Log, TEXT("%s: set!?"), UTF8_TO_TCHAR(__func__) );
+//}
 
 #undef LOCTEXT_NAMESPACE

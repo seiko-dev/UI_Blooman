@@ -8,10 +8,10 @@ void UUI_BloomanEdSubsystem::Initialize(FSubsystemCollectionBase& Collection)
 {
     Super::Initialize(Collection);
 
-    Reset();
+    ResetTextureSaveParam();
 }
 
-void UUI_BloomanEdSubsystem::Reset()
+void UUI_BloomanEdSubsystem::ResetTextureSaveParam()
 {
     TextureCreateCommand = ETexCreateCmd::None;
     bNeedRestoreShowOutline = false;

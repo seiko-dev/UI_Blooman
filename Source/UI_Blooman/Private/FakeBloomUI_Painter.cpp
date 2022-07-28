@@ -2,34 +2,47 @@
 
 #include "FakeBloomUI_Painter.h"
 #include "FakeBloomUI_Parameter.h"
+#include "FakeBloomUI.h"
 
 UFakeBloomUI_Painter::UFakeBloomUI_Painter()
-    : CommonParameter(nullptr)
-    , TintColor(FLinearColor::White)
-    , SizeScale(1.0f, 1.0f)
 {
 }
 
 void UFakeBloomUI_Painter::DrawImageToCenter(FPaintContext& Context,
-                                             UObject* Image,
-                                             int32 Overhang,
+                                             int32 OverhangX,
+                                             int32 OverhangY,
                                              const FVector2D& InSizeScale,
-                                             const FLinearColor& InTintColor)
+                                             const FSlateBrush& Brush)
 {
-    FVector2D Size = (Context.AllottedGeometry.GetLocalSize() + 2*Overhang)* InSizeScale;
+    FVector2D Size = (Context.AllottedGeometry.GetLocalSize() + 2*FVector2D(OverhangX, OverhangY)) * InSizeScale;
     FVector2D Position = (Context.AllottedGeometry.GetLocalSize() - Size) * 0.5f;
-    FSlateBrush Brush;
-    Brush.SetResourceObject(Image);
 
     FSlateDrawElement::MakeBox(
         Context.OutDrawElements,
         Context.MaxLayer,
         Context.AllottedGeometry.ToPaintGeometry(Position, Size),
-        &Brush,
-        ESlateDrawEffect::None,
-        InTintColor);
+        &Brush);
 
     Context.MaxLayer++;
+}
+
+bool UFakeBloomUI_Painter::IsUsingValidTexture() const
+{
+    if (FakeBloomUI) {
+        return FakeBloomUI->BaseParameter.IsUsingValidTexture();
+    }
+    return false;
+}
+
+const FFakeBloomUI_BaseParameter& UFakeBloomUI_Painter::GetBaseParameter() const
+{
+    if (FakeBloomUI) {
+        return FakeBloomUI->BaseParameter;
+    }
+
+    ensure(0);
+    static FFakeBloomUI_BaseParameter Dummy;
+    return Dummy;
 }
 
 class UWorld* UFakeBloomUI_Painter::GetWorld() const

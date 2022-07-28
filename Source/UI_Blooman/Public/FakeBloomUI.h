@@ -27,14 +27,13 @@ public:
     bool IsDesignTime() const;
 
 public:
-    UPROPERTY(BlueprintReadOnly, EditAnywhere, Instanced, NoClear, Interp, Category = "Fake Bloom")
-    TObjectPtr<UFakeBloomUI_CommonParameter> CommonParameter;
+    UPROPERTY(EditAnywhere, Category = "Fake Bloom")
+    FFakeBloomUI_BaseParameter BaseParameter;
 
-    UPROPERTY(BlueprintReadOnly, EditAnywhere, Instanced, NoClear, Interp, Category = "Fake Bloom")
+    UPROPERTY(BlueprintReadOnly, EditAnywhere, Instanced, NoClear, Category = "Fake Bloom")
     TObjectPtr<UFakeBloomUI_Builder> Builder;
 
-    //-------------------------------------------------
-    UPROPERTY(BlueprintReadOnly, EditAnywhere, Instanced, NoClear, Interp, Category = "Fake Bloom")
+    UPROPERTY(BlueprintReadOnly, EditAnywhere, Instanced, NoClear, Category = "Fake Bloom")
     TObjectPtr<UFakeBloomUI_Painter> Painter;
 
 #if WITH_EDITORONLY_DATA
@@ -45,6 +44,10 @@ public:
     FString TextureSavePath;
 #endif
 
+public:
+    virtual void OnPaintPreProcess(const FFakeBloomUI_PreProcessArgs& args);
+    virtual void OnPaint(FPaintContext& Context);
+
 #if WITH_EDITOR
 public:
     // UObject interface
@@ -52,7 +55,6 @@ public:
 
     // UWidget interface
     virtual const FText GetPaletteCategory() override;
-
 public:
     // 本ClassにEditorSubSystemを意識させない為のDelegate
     DECLARE_DELEGATE_OneParam(FCheckEditorCommand, UFakeBloomUI*);
