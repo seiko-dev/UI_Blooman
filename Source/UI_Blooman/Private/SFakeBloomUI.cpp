@@ -9,8 +9,7 @@ void SFakeBloomUI::PrivateRegisterAttributes(FSlateAttributeInitializer& Attribu
 }
 
 SFakeBloomUI::SFakeBloomUI()
-    : Builder(nullptr)
-    , Painter(nullptr)
+    : Widget(nullptr)
 {
 }
 
@@ -29,29 +28,23 @@ void SFakeBloomUI::SetContent(const TSharedRef<SWidget>& InContent)
     ChildSlot.AttachWidget(InContent);
 }
 
-void SFakeBloomUI::SetDrivers(UFakeBloomUI_Builder* InBuilder, UFakeBloomUI_Painter* InPainter)
+void SFakeBloomUI::SetWidget(UFakeBloomUI* InWidget)
 {
-    Builder = InBuilder;
-    Painter = InPainter;
+    Widget = InWidget;
 }
 
 int32 SFakeBloomUI::OnPaint(const FPaintArgs& Args, const FGeometry& AllottedGeometry, const FSlateRect& MyCullingRect, FSlateWindowElementList& OutDrawElements, int32 LayerId, const FWidgetStyle& InWidgetStyle, bool bParentEnabled) const
 {
     // 前処理
-    if (Builder) {
-        const_cast<SFakeBloomUI*>(this)->Builder->OnPaintPreProcess(FFakeBloomUI_PreProcessArgs(AllottedGeometry, MyCullingRect));
-    }
+    const_cast<SFakeBloomUI*>(this)->Widget->OnPaintPreProcess(FFakeBloomUI_PreProcessArgs(AllottedGeometry, MyCullingRect));
     
     // 先にコンテンツを描いてから
     LayerId = SCompoundWidget::OnPaint(Args, AllottedGeometry, MyCullingRect, OutDrawElements, LayerId, InWidgetStyle, bParentEnabled);
 
     // 上にBloomを描く
-    if (Painter) {
-        FPaintContext Context(AllottedGeometry, MyCullingRect, OutDrawElements, LayerId, InWidgetStyle, bParentEnabled);
-        Painter->OnPaint(Context);
+    FPaintContext Context(AllottedGeometry, MyCullingRect, OutDrawElements, LayerId, InWidgetStyle, bParentEnabled);
+    Widget->OnPaint(Context);
 
-        LayerId = FMath::Max(LayerId, Context.MaxLayer);
-    }
-    
+    LayerId = FMath::Max(LayerId, Context.MaxLayer);
     return LayerId;
 }

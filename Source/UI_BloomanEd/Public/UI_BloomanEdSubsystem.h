@@ -22,9 +22,10 @@ public:
         Overwrite,
     };
 
-    virtual void Initialize(FSubsystemCollectionBase& Collection);
-
-    void Reset();
+public:
+    virtual void Initialize(FSubsystemCollectionBase& Collection) override;
+    
+    void ResetTextureSaveParam();
 
     void SetSavePath(const FString& Path) {
         TextureSavePath = Path;

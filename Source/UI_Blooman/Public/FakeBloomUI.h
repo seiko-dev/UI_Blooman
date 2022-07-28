@@ -27,33 +27,26 @@ public:
     bool IsDesignTime() const;
 
 public:
-    UPROPERTY(BlueprintReadWrite, EditAnywhere, Interp, Category = "Fake Bloom")
-    FFakeBloomUI_BuildParameter BuildParameter;
+    UPROPERTY(EditAnywhere, Category = "Fake Bloom")
+    FFakeBloomUI_BaseParameter BaseParameter;
 
-    UPROPERTY(BlueprintReadWrite, EditAnywhere, Interp, Category = "Fake Bloom")
-    FFakeBloomUI_PaintParameter PaintParameter;
-
-    UPROPERTY(BlueprintReadWrite, EditAnywhere, Interp, Category = "Fake Bloom")
-    FFakeBloomUI_WriteParameter WriteParameter;
-
-public:
-    //-------------------------------------------------
-    UPROPERTY(BlueprintReadWrite, EditAnywhere, NoClear, AdvancedDisplay, Category = "Fake Bloom")
-    TSubclassOf<UFakeBloomUI_Builder> BuilderClass;
-
-    UPROPERTY(BlueprintReadOnly, Category = "Fake Bloom")
+    UPROPERTY(BlueprintReadOnly, EditAnywhere, Instanced, NoClear, Category = "Fake Bloom")
     TObjectPtr<UFakeBloomUI_Builder> Builder;
 
-    UFakeBloomUI_Builder* GetBuilder(bool ForceRebuild = false);
-
-    //-------------------------------------------------
-    UPROPERTY(BlueprintReadWrite, EditAnywhere, NoClear, AdvancedDisplay, Category = "Fake Bloom")
-    TSubclassOf<UFakeBloomUI_Painter> PainterClass;
-
-    UPROPERTY(BlueprintReadOnly, Category = "Fake Bloom")
+    UPROPERTY(BlueprintReadOnly, EditAnywhere, Instanced, NoClear, Category = "Fake Bloom")
     TObjectPtr<UFakeBloomUI_Painter> Painter;
 
-    UFakeBloomUI_Painter* GetPainter(bool ForceRebuild = false);
+#if WITH_EDITORONLY_DATA
+    UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Fake Bloom")
+    TEnumAsByte<enum TextureCompressionSettings> TextureFormat;
+
+    UPROPERTY()
+    FString TextureSavePath;
+#endif
+
+public:
+    virtual void OnPaintPreProcess(const FFakeBloomUI_PreProcessArgs& args);
+    virtual void OnPaint(FPaintContext& Context);
 
 #if WITH_EDITOR
 public:
@@ -62,7 +55,6 @@ public:
 
     // UWidget interface
     virtual const FText GetPaletteCategory() override;
-
 public:
     // 本ClassにEditorSubSystemを意識させない為のDelegate
     DECLARE_DELEGATE_OneParam(FCheckEditorCommand, UFakeBloomUI*);
@@ -79,7 +71,6 @@ public:
 
     void OnFinishWriteJob();
 
-    FString TextureSavePath;
 #endif
 
 protected:

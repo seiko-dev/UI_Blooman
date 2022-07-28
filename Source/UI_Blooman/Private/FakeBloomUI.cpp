@@ -8,6 +8,7 @@
 #if WITH_EDITOR
 #include "Kismet/KismetRenderingLibrary.h"
 #endif
+#include "AssetRegistry/AssetRegistryModule.h"
 
 #define LOCTEXT_NAMESPACE "UI_BLOOMAN"
 
@@ -18,11 +19,66 @@ UFakeBloomUI::UFakeBloomUI(const FObjectInitializer& ObjectInitializer)
 {
     bIsVariable = true;
     Visibility = ESlateVisibility::SelfHitTestInvisible;
+
+    {
+        // TODO: Project Settingsでの指定
+        FString Path = "/UI_Blooman/M_FakeBloomUI_PaintAdditive.M_FakeBloomUI_PaintAdditive";
+
+        FAssetRegistryModule& AssetRegistryModule = FModuleManager::LoadModuleChecked<FAssetRegistryModule>("AssetRegistry");
+        FAssetData AssetData = AssetRegistryModule.Get().GetAssetByObjectPath(FName(*Path));
+        
+        // 同期読込
+        if (UObject* PaintMaterial = AssetData.GetAsset()) {
+            BaseParameter.Brush.SetResourceObject(PaintMaterial);
+        }
+    }
+
+    {
+        // TODO: Project Settingsでの指定
+        FString Path = "/UI_Blooman/B_FakeBloomUI_Builder.B_FakeBloomUI_Builder_C";
+
+        TSubclassOf<UFakeBloomUI_Builder> Class = TSoftClassPtr<UFakeBloomUI_Builder>(FSoftObjectPath(*Path)).LoadSynchronous();
+        if (Class) {
+            Builder = Cast<UFakeBloomUI_Builder>(ObjectInitializer.CreateDefaultSubobject(
+                this,
+                Class->GetFName(),
+                Class,
+                Class));
+        }
+    }
+    {
+        // TODO: Project Settingsでの指定
+        FString Path = "/UI_Blooman/B_FakeBloomUI_Painter.B_FakeBloomUI_Painter_C";
+
+        TSubclassOf<UFakeBloomUI_Painter> Class = TSoftClassPtr<UFakeBloomUI_Painter>(FSoftObjectPath(*Path)).LoadSynchronous();
+        if (Class) {
+            Painter = Cast<UFakeBloomUI_Painter>(ObjectInitializer.CreateDefaultSubobject(
+                this,
+                Class->GetFName(),
+                Class,
+                Class));
+        }
+    }
 }
 
 UWidget* UFakeBloomUI::GetChildContent() const
 {
     return GetContentSlot()->Content;
+}
+
+void UFakeBloomUI::OnPaintPreProcess(const FFakeBloomUI_PreProcessArgs& args)
+{
+    if(Painter && Builder){
+        Painter->OnPaintPreProcess(); // 先にPainterにRender Targetの受け取りを準備させる必要がある
+        Builder->OnPaintPreProcess(args);
+    }
+}
+
+void UFakeBloomUI::OnPaint(FPaintContext& Context)
+{
+    if (Painter) {
+        Painter->OnPaint(Context);
+    }
 }
 
 void UFakeBloomUI::ReleaseSlateResources(bool bReleaseChildren)
@@ -41,14 +97,21 @@ void UFakeBloomUI::PostEditChangeProperty(FPropertyChangedEvent& PropertyChanged
         TSharedPtr<SWidget> SafeWidget = GetCachedWidget();
         if (SafeWidget.IsValid())
         {
-            // 変更したプロパティ値に対応してRender Targetを作り直させたいので再構築
-            if (Builder) {
-                Builder->OnRequestRedraw();
-            }
+            if (Builder && Painter) {
+                // 変更した(かもしれない)パラメータ反映
+                Builder->BaseParameter = BaseParameter;
+                Painter->FakeBloomUI = this;
 
-            // PainterもbUseTextureの状態を反映させたいので作り直し
-            if (Painter) {
+                // 新しいパラメータ対応でRender Targetを作り直させたいので再描画
+                Builder->OnRequestRedraw();                 
+
+                // PainterもbUseTextureの状態を反映させたいので作り直し
                 Painter->OnRebuild();
+
+                // どっちかが差し替えられている可能性もあるので、
+                // DelegateによるRender Target受け渡しも再構築
+                Builder->OnFinishBuild.Clear();
+                Builder->OnFinishBuild.AddDynamic(Painter.Get(), &UFakeBloomUI_Painter::SetRenderTexture);
             }
         }
     }
@@ -72,12 +135,12 @@ void UFakeBloomUI::CreateNewTexture(UTextureRenderTarget2D* InRenderTarget)
     UTexture2D* Tex = UKismetRenderingLibrary::RenderTargetCreateStaticTexture2DEditorOnly(
         InRenderTarget,
         TextureSavePath,
-        WriteParameter.Format,
+        TextureFormat,
         TextureMipGenSettings::TMGS_NoMipmaps);
 
     if (Tex) {
-        PaintParameter.bUseTexture = true;
-        PaintParameter.BloomTexture = Tex;
+        BaseParameter.bUseTexture = true;
+        BaseParameter.BloomTexture = Tex;
     }
 
     OnFinishWriteJob();
@@ -87,14 +150,16 @@ void UFakeBloomUI::OverwriteTexture(UTextureRenderTarget2D* InRenderTarget)
 {
     Builder->OnFinishBuild.RemoveDynamic(this, &UFakeBloomUI::OverwriteTexture);
 
-    UKismetRenderingLibrary::ConvertRenderTargetToTexture2DEditorOnly(
+    if (BaseParameter.BloomTexture) {
+        UKismetRenderingLibrary::ConvertRenderTargetToTexture2DEditorOnly(
         GetWorld(),
         InRenderTarget,
-        PaintParameter.BloomTexture);
+        BaseParameter.BloomTexture);
 
-    // 圧縮設定も上書き
-    PaintParameter.BloomTexture->CompressionSettings = WriteParameter.Format;
-    PaintParameter.BloomTexture->PostEditChange();
+        // 圧縮設定も上書き
+        BaseParameter.BloomTexture->CompressionSettings = TextureFormat;
+        BaseParameter.BloomTexture->PostEditChange();
+    }
 
     OnFinishWriteJob();
 }
@@ -109,30 +174,30 @@ void UFakeBloomUI::OnFinishWriteJob()
 
 TSharedRef<SWidget> UFakeBloomUI::RebuildWidget()
 {
-    // Widget DesignerへD&DでFakeBloomを含むUserWidgetを配置した際、
-    // Drag時に表示されるWidgetのコピーを生成するっぽいので流用するとバグる。
-    // (Drag中の半透明UFakeBloomUIがOuterだとGetWorldに失敗し各種関数が動かない)
-    // https://github.com/seiko-dev/UI_Blooman/issues/36
-    Builder = GetBuilder(true);
-    Painter = GetPainter(true);
-
-#if WITH_EDITOR
-    // 何かしら予約があれば実行
-    CheckEditorCommand.ExecuteIfBound(this);
-    CheckEditorCommand.Unbind();
-#endif
-
     if (Builder && Painter) {
+        // OnReBuildがCommonParameterを使うので先に参照を付与
+        Builder->BaseParameter = BaseParameter;
+        Painter->FakeBloomUI = this;
+   
         Builder->OnRebuild();
         Painter->OnRebuild();
 
-        // Builderの成果をPainterに渡す予約
+        // 一旦Clearしておかないと、ここに来る経緯によっては多重登録になりうる
+        Builder->OnFinishBuild.Clear();
+
+        // DelegateによるRender Target受け渡しを再構築
         // PainterがTObjectPtrなので、Getで生ポインタに変換しないとコンパイルが通らない
         Builder->OnFinishBuild.AddDynamic(Painter.Get(), &UFakeBloomUI_Painter::SetRenderTexture);
+
+#if WITH_EDITOR
+        // 何かしら予約があれば実行
+        CheckEditorCommand.ExecuteIfBound(this);
+        CheckEditorCommand.Unbind();
+#endif
     }
 
     MyFakeBloomUI = SNew(SFakeBloomUI);
-    MyFakeBloomUI->SetDrivers(Builder, Painter);
+    MyFakeBloomUI->SetWidget(this);
 
     // Add any existing content to the new slate box
     if (GetChildrenCount() > 0)
@@ -169,45 +234,6 @@ void UFakeBloomUI::OnSlotRemoved(UPanelSlot* InSlot)
     }
 }
 
-UFakeBloomUI_Builder* UFakeBloomUI::GetBuilder(bool ForceRebuild)
-{
-    if (!Builder || ForceRebuild) {
-        if (!BuilderClass) {
-            // TODO: Project Settingsでの指定
-            FString Path = "/UI_Blooman/B_FakeBloomUI_Builder.B_FakeBloomUI_Builder_C";
-            BuilderClass = TSoftClassPtr<UFakeBloomUI_Builder>(FSoftObjectPath(*Path)).LoadSynchronous();
-        }
-        if (BuilderClass) {
-            Builder = NewObject<UFakeBloomUI_Builder>(this, BuilderClass, BuilderClass->GetFName());
-            Builder->SetParameters(&BuildParameter, &PaintParameter);
-
-        } else {
-            check(0);
-        }
-    }
-    return Builder;
-}
-
-UFakeBloomUI_Painter* UFakeBloomUI::GetPainter(bool ForceRebuild)
-{
-    if (!Painter || ForceRebuild) {
-        if (!PainterClass) {
-            // TODO: Project Settingsでの指定
-            // B_FakeBloom_Builder
-            FString Path = "/UI_Blooman/B_FakeBloomUI_Painter.B_FakeBloomUI_Painter_C";
-            PainterClass = TSoftClassPtr<UFakeBloomUI_Painter>(FSoftObjectPath(*Path)).LoadSynchronous();
-        }
-        if (PainterClass) {
-            Painter = NewObject<UFakeBloomUI_Painter>(this, PainterClass, PainterClass->GetFName());
-            Painter->SetParameters(&BuildParameter, &PaintParameter);
-
-        } else {
-            check(0);
-        }
-    }
-    return Painter;
-}
-
 bool UFakeBloomUI::IsDesignTime() const
 {
 #if WITH_EDITOR
@@ -216,5 +242,11 @@ bool UFakeBloomUI::IsDesignTime() const
     return false;
 #endif
 }
+
+//void UFakeBloomUI::SetPainter(float Value)
+//{
+//    //Painter->TintColor = In->TintColor;
+//    UE_LOG(LogTemp, Log, TEXT("%s: set!?"), UTF8_TO_TCHAR(__func__) );
+//}
 
 #undef LOCTEXT_NAMESPACE

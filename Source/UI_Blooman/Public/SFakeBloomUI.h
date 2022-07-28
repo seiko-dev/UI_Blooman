@@ -22,10 +22,9 @@ public:
     SFakeBloomUI();
     void Construct(const FArguments& InArgs);
     void SetContent(const TSharedRef<SWidget>& InContent);
-    void SetDrivers(UFakeBloomUI_Builder* InBuilder, UFakeBloomUI_Painter* InPainter);
+    void SetWidget(UFakeBloomUI* InWidget);
     virtual int32 OnPaint(const FPaintArgs& Args, const FGeometry& AllottedGeometry, const FSlateRect& MyCullingRect, FSlateWindowElementList& OutDrawElements, int32 LayerId, const FWidgetStyle& InWidgetStyle, bool bParentEnabled) const override;
 
 private:
-    TObjectPtr<class UFakeBloomUI_Builder> Builder;
-    TObjectPtr<class UFakeBloomUI_Painter> Painter;
+    TObjectPtr<class UFakeBloomUI> Widget;
 };

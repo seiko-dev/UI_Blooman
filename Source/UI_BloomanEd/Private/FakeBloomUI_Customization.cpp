@@ -186,16 +186,48 @@ TSharedRef<IDetailCustomization> FFakeBloomUI_Customization::MakeInstance()
     return MakeShareable(new FFakeBloomUI_Customization());
 }
 
+// UI構築
 void FFakeBloomUI_Customization::CustomizeDetails(IDetailLayoutBuilder& DetailLayout)
 {
-    // UI構築
+    // Category
     IDetailCategoryBuilder& Category = DetailLayout.EditCategory(TEXT("Fake Bloom"),
                                                                     FText::GetEmpty(),
                                                                     ECategoryPriority::TypeSpecific);
-    // Build
-    {
-        Category.AddProperty(DetailLayout.GetProperty(GET_MEMBER_NAME_CHECKED(UFakeBloomUI, BuildParameter)));
 
+    // Base
+    Category.AddProperty(DetailLayout.GetProperty(GET_MEMBER_NAME_CHECKED(UFakeBloomUI, BaseParameter)));
+
+    // Builder
+    Category.AddProperty(DetailLayout.GetProperty(GET_MEMBER_NAME_CHECKED(UFakeBloomUI, Builder)));
+
+    // Paint
+    {
+        Category.AddProperty(DetailLayout.GetProperty(GET_MEMBER_NAME_CHECKED(UFakeBloomUI, Painter)));
+
+        // Painter
+        {
+            IDetailGroup& Group = Category.AddGroup("Paint Parameter", FText::FromString("Paint Parameter"));
+
+            // privateなのでGET_MEMBER_NAME_CHECKEDが使えない
+            Group.AddPropertyRow(DetailLayout.GetProperty("BaseParameter.Brush.ResourceObject"))
+                .DisplayName(FText::FromString("Paint Material Override"));
+            
+            Group.AddPropertyRow(DetailLayout.GetProperty(GET_MEMBER_NAME_CHECKED(UFakeBloomUI, BaseParameter.TintColor)));
+            Group.AddPropertyRow(DetailLayout.GetProperty(GET_MEMBER_NAME_CHECKED(UFakeBloomUI, BaseParameter.SizeScale)));
+        }
+
+    }
+
+    // BrushはImage以外使わないので隠す
+    DetailLayout.HideProperty(GET_MEMBER_NAME_CHECKED(UFakeBloomUI, BaseParameter.Brush));
+
+    // BStatic Texture Create
+    {
+        IDetailGroup& Group = Category.AddGroup("Static Texture Create", FText::FromString("Static Texture Create"));
+
+        Group.AddPropertyRow(DetailLayout.GetProperty(GET_MEMBER_NAME_CHECKED(UFakeBloomUI, TextureFormat)));
+
+        // 新規・上書ボタン
         TSharedRef<SHorizontalBox> ButtonBox = SNew(SHorizontalBox)
             + SHorizontalBox::Slot()
             .AutoWidth()
@@ -213,44 +245,44 @@ void FFakeBloomUI_Customization::CustomizeDetails(IDetailLayoutBuilder& DetailLa
                 .Text(FText::FromString(TEXT("Overwrite Texture")))
             .OnClicked(this, &FFakeBloomUI_Customization::OnOverwriteTextureClicked)
             ];
-
-        FDetailWidgetRow& ButtonRow = Category.AddCustomRow(FText::GetEmpty());
-        ButtonRow.WholeRowContent()
+                
+        Group.AddWidgetRow()
+            .WholeRowContent()
             [
                 ButtonBox
             ];
     }
 
-    // Paint
-    {
-        // 「プロパティ活性化チェックボックス + プロパティ実体」のセット。
-        // なんかもっと簡単に作れそうだけど…
-        Category.AddProperty(DetailLayout.GetProperty(GET_MEMBER_NAME_CHECKED(UFakeBloomUI, PaintParameter.bUseTexture))).CustomWidget()
-        .NameContent()
-        [
-            SNew(SHorizontalBox)
-            + SHorizontalBox::Slot()
-            .AutoWidth()
-            [
-                DetailLayout.GetProperty(GET_MEMBER_NAME_CHECKED(UFakeBloomUI, PaintParameter.bUseTexture))->CreatePropertyValueWidget()
-            ]
-            + SHorizontalBox::Slot()
-            .Padding(4, 0)
-            .AutoWidth()
-            [
-                DetailLayout.GetProperty(GET_MEMBER_NAME_CHECKED(UFakeBloomUI, PaintParameter.bUseTexture))->CreatePropertyNameWidget()
-            ]
-        ]
-        .ValueContent()
-        .VAlign(VAlign_Center)
-        [
-            DetailLayout.GetProperty(GET_MEMBER_NAME_CHECKED(UFakeBloomUI, PaintParameter.BloomTexture))->CreatePropertyValueWidget()
-        ];
-        DetailLayout.HideProperty(DetailLayout.GetProperty(GET_MEMBER_NAME_CHECKED(UFakeBloomUI, PaintParameter.BloomTexture)));
+    // 
+    //{
+    //    // 「プロパティ活性化チェックボックス + プロパティ実体」のセット。
+    //    // なんかもっと簡単に作れそうだけど…
+    //    Category.AddProperty(DetailLayout.GetProperty(GET_MEMBER_NAME_CHECKED(UFakeBloomUI, PaintParameter.bUseTexture))).CustomWidget()
+    //    .NameContent()
+    //    [
+    //        SNew(SHorizontalBox)
+    //        + SHorizontalBox::Slot()
+    //        .AutoWidth()
+    //        [
+    //            DetailLayout.GetProperty(GET_MEMBER_NAME_CHECKED(UFakeBloomUI, PaintParameter.bUseTexture))->CreatePropertyValueWidget()
+    //        ]
+    //        + SHorizontalBox::Slot()
+    //        .Padding(4, 0)
+    //        .AutoWidth()
+    //        [
+    //            DetailLayout.GetProperty(GET_MEMBER_NAME_CHECKED(UFakeBloomUI, PaintParameter.bUseTexture))->CreatePropertyNameWidget()
+    //        ]
+    //    ]
+    //    .ValueContent()
+    //    .VAlign(VAlign_Center)
+    //    [
+    //        DetailLayout.GetProperty(GET_MEMBER_NAME_CHECKED(UFakeBloomUI, PaintParameter.BloomTexture))->CreatePropertyValueWidget()
+    //    ];
+    //    DetailLayout.HideProperty(DetailLayout.GetProperty(GET_MEMBER_NAME_CHECKED(UFakeBloomUI, PaintParameter.BloomTexture)));
 
-        // 残りのプロパティを追加
-        Category.AddProperty(DetailLayout.GetProperty(GET_MEMBER_NAME_CHECKED(UFakeBloomUI, PaintParameter)));
-    }
+    //    // 残りのプロパティを追加
+    //    Category.AddProperty(DetailLayout.GetProperty(GET_MEMBER_NAME_CHECKED(UFakeBloomUI, PaintParameter)));
+    //}
 
     // Outline消しショトカ用にDesignerViewを探しておく
     {
@@ -262,8 +294,13 @@ void FFakeBloomUI_Customization::CustomizeDetails(IDetailLayoutBuilder& DetailLa
         }
     }
 
-    UseTexHandle = DetailLayout.GetProperty(GET_MEMBER_NAME_CHECKED(UFakeBloomUI, PaintParameter.bUseTexture));
-    TexHandle = DetailLayout.GetProperty(GET_MEMBER_NAME_CHECKED(UFakeBloomUI, PaintParameter.BloomTexture));
+    // 更新用にハンドル確保
+    {
+        TSharedPtr<IPropertyHandle> BaseParamHandle = DetailLayout.GetProperty(GET_MEMBER_NAME_CHECKED(UFakeBloomUI, BaseParameter));
+        UseTexHandle = BaseParamHandle->GetChildHandle(FName("bUseTexture"));
+        TextureHandle = BaseParamHandle->GetChildHandle(FName("BloomTexture"));
+    }
+
     SelectedObjects = DetailLayout.GetSelectedObjects();
 
     // 遅延されていた命令があるなら、ここで実行
@@ -339,13 +376,16 @@ void FFakeBloomUI_Customization::FinishCreateTexture()
         TextureCreateWorkerNum = 0;
 
         // プロパティ変化をSlateに通知
-        if (TexHandle.IsValid()) {
+        if (TextureHandle->IsValidHandle()) {
             UObject* Prop(nullptr);
-            if (TexHandle->GetValue(Prop) == FPropertyAccess::Result::Success) {
-                TexHandle->SetValue(Prop);
+            if (TextureHandle->GetValue(Prop) == FPropertyAccess::Result::Success) {
+                TextureHandle->SetValue(Prop);
             } else {
                 UE_LOG(LogTemp, Log, TEXT("%s: GetValue failed."), UTF8_TO_TCHAR(__func__));
             }
+        }
+        if (UseTexHandle->IsValidHandle()) {
+            bool Prop(false);
             if (UseTexHandle->GetValue(Prop) == FPropertyAccess::Result::Success) {
                 UseTexHandle->SetValue(Prop);
             } else {
@@ -358,7 +398,7 @@ void FFakeBloomUI_Customization::FinishCreateTexture()
         }
 
         // 全作業が終了したので、予約をリセット
-        SubSys->Reset();
+        SubSys->ResetTextureSaveParam();
     }
 }
 

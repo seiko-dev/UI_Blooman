@@ -2,34 +2,47 @@
 
 #include "FakeBloomUI_Painter.h"
 #include "FakeBloomUI_Parameter.h"
+#include "FakeBloomUI.h"
 
-void UFakeBloomUI_Painter::SetParameters(const FFakeBloomUI_BuildParameter* InBuildParameter,
-                                         const FFakeBloomUI_PaintParameter* InPaintParameter)
+UFakeBloomUI_Painter::UFakeBloomUI_Painter()
 {
-    BuildParameter = InBuildParameter;
-    PaintParameter = InPaintParameter;
 }
 
 void UFakeBloomUI_Painter::DrawImageToCenter(FPaintContext& Context,
-                                             UObject* Image,
-                                             int32 Overhang,
-                                             const FVector2D& Scale,
-                                             const FLinearColor& TintColor) const
+                                             int32 OverhangX,
+                                             int32 OverhangY,
+                                             const FVector2D& InSizeScale,
+                                             const FSlateBrush& Brush)
 {
-    FVector2D Size = (Context.AllottedGeometry.GetLocalSize() + 2*Overhang)*Scale;
+    FVector2D Size = (Context.AllottedGeometry.GetLocalSize() + 2*FVector2D(OverhangX, OverhangY)) * InSizeScale;
     FVector2D Position = (Context.AllottedGeometry.GetLocalSize() - Size) * 0.5f;
-    FSlateBrush Brush;
-    Brush.SetResourceObject(Image);
 
     FSlateDrawElement::MakeBox(
         Context.OutDrawElements,
         Context.MaxLayer,
         Context.AllottedGeometry.ToPaintGeometry(Position, Size),
-        &Brush,
-        ESlateDrawEffect::None,
-        TintColor);
+        &Brush);
 
     Context.MaxLayer++;
+}
+
+bool UFakeBloomUI_Painter::IsUsingValidTexture() const
+{
+    if (FakeBloomUI) {
+        return FakeBloomUI->BaseParameter.IsUsingValidTexture();
+    }
+    return false;
+}
+
+const FFakeBloomUI_BaseParameter& UFakeBloomUI_Painter::GetBaseParameter() const
+{
+    if (FakeBloomUI) {
+        return FakeBloomUI->BaseParameter;
+    }
+
+    ensure(0);
+    static FFakeBloomUI_BaseParameter Dummy;
+    return Dummy;
 }
 
 class UWorld* UFakeBloomUI_Painter::GetWorld() const
@@ -42,26 +55,4 @@ class UWorld* UFakeBloomUI_Painter::GetWorld() const
         return GetOuter()->GetWorld();
     }
     return nullptr;
-}
-
-const FFakeBloomUI_BuildParameter& UFakeBloomUI_Painter::GetBuildParameter() const
-{
-    if (BuildParameter) {
-        return *BuildParameter;
-    }
-
-    ensure(0);
-    static FFakeBloomUI_BuildParameter Dummy;
-    return Dummy;
-}
-
-const FFakeBloomUI_PaintParameter& UFakeBloomUI_Painter::GetPaintParameter() const
-{
-    if (PaintParameter) {
-        return *PaintParameter;
-    }
-
-    ensure(0);
-    static FFakeBloomUI_PaintParameter Dummy;
-    return Dummy;
 }
