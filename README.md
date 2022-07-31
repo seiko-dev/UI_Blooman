@@ -4,7 +4,7 @@ Plugin for Unreal Engine. A "Fake Bloom" widget is added to pseudo-bloom child e
 
 # 特徴 / Feature
 - 子要素のブルームテクスチャをRender Targetとして生成し、描画します。  
-- Generate and draw the child element's bloom texture as a Render Target.  
+Generate and draw the child element's bloom texture as a Render Target.  
 
 - ブルームテクスチャをテクスチャアセットとして保存可能です。  
 Bloom textures can be saved as texture assets.  
