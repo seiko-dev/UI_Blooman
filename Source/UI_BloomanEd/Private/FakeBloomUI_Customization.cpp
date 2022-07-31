@@ -201,21 +201,18 @@ void FFakeBloomUI_Customization::CustomizeDetails(IDetailLayoutBuilder& DetailLa
     Category.AddProperty(DetailLayout.GetProperty(GET_MEMBER_NAME_CHECKED(UFakeBloomUI, Builder)));
 
     // Paint
+    Category.AddProperty(DetailLayout.GetProperty(GET_MEMBER_NAME_CHECKED(UFakeBloomUI, Painter)));
+
+    // Appearance
     {
-        Category.AddProperty(DetailLayout.GetProperty(GET_MEMBER_NAME_CHECKED(UFakeBloomUI, Painter)));
+        IDetailGroup& Group = Category.AddGroup("Appearance", FText::FromString("Appearance"));
 
-        // Painter
-        {
-            IDetailGroup& Group = Category.AddGroup("Paint Parameter", FText::FromString("Paint Parameter"));
+        // privateなのでGET_MEMBER_NAME_CHECKEDが使えない
+        Group.AddPropertyRow(DetailLayout.GetProperty("BaseParameter.Brush.ResourceObject"))
+            .DisplayName(FText::FromString("Paint Material"));
 
-            // privateなのでGET_MEMBER_NAME_CHECKEDが使えない
-            Group.AddPropertyRow(DetailLayout.GetProperty("BaseParameter.Brush.ResourceObject"))
-                .DisplayName(FText::FromString("Paint Material Override"));
-            
-            Group.AddPropertyRow(DetailLayout.GetProperty(GET_MEMBER_NAME_CHECKED(UFakeBloomUI, BaseParameter.TintColor)));
-            Group.AddPropertyRow(DetailLayout.GetProperty(GET_MEMBER_NAME_CHECKED(UFakeBloomUI, BaseParameter.SizeScale)));
-        }
-
+        Group.AddPropertyRow(DetailLayout.GetProperty(GET_MEMBER_NAME_CHECKED(UFakeBloomUI, BaseParameter.TintColor)));
+        Group.AddPropertyRow(DetailLayout.GetProperty(GET_MEMBER_NAME_CHECKED(UFakeBloomUI, BaseParameter.SizeScale)));
     }
 
     // BrushはImage以外使わないので隠す

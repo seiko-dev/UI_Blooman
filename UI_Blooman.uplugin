@@ -1,29 +1,29 @@
 {
-	"FileVersion": 3,
-	"Version": 1,
-	"VersionName": "0.0.1",
-	"FriendlyName": "UI_Blooman",
-	"Description": "Add a fake bloom effect for UMG widget",
-	"Category": "UI",
-	"CreatedBy": "seiko_dev",
-	"CreatedByURL": "https://twitter.com/seiko_dev",
-	"DocsURL": "https://github.com/seiko-dev/UI_Blooman",
-	"MarketplaceURL": "",
-	"SupportURL": "https://github.com/seiko-dev/UI_Blooman/issues",
-	"CanContainContent": true,
-	"IsBetaVersion": true,
-	"IsExperimentalVersion": false,
-	"Installed": false,
-	"Modules": [
-		{
-			"Name": "UI_Blooman",
-			"Type": "Runtime",
-			"LoadingPhase": "Default"
-		},
-		{
-			"Name": "UI_BloomanEd",
-			"Type": "Editor",
-			"LoadingPhase": "Default"
-		}
-	]	  
+    "FileVersion": 3,
+    "Version": 1,
+    "VersionName": "0.1.0",
+    "FriendlyName": "UI_Blooman",
+    "Description": "Add a fake bloom effect for UMG widget",
+    "Category": "UI",
+    "CreatedBy": "seiko_dev",
+    "CreatedByURL": "https://twitter.com/seiko_dev",
+    "DocsURL": "https://github.com/seiko-dev/UI_Blooman",
+    "MarketplaceURL": "",
+    "SupportURL": "https://github.com/seiko-dev/UI_Blooman/issues",
+    "CanContainContent": true,
+    "IsBetaVersion": true,
+    "IsExperimentalVersion": true,
+    "Installed": false,
+    "Modules": [
+        {
+            "Name": "UI_Blooman",
+            "Type": "Runtime",
+            "LoadingPhase": "Default"
+        },
+        {
+            "Name": "UI_BloomanEd",
+            "Type": "Editor",
+            "LoadingPhase": "Default"
+        }
+    ]
 }
