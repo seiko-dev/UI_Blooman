@@ -56,7 +56,7 @@ Read the caution notes first. It is located just above this section.
 - [Releases](https://github.com/seiko-dev/UI_Blooman/releases)からzipファイルをダウンロードします。  
 Download the zip file from [Releases](https://github.com/seiko-dev/UI_Blooman/releases).
 
-- zipファイル内から「UI_Blooman」フォルダを展開します。
+- zipファイル内から「UI_Blooman」フォルダを展開します。  
 Extract the "UI_Blooman" folder from within the zip file.
 
 - プラグインを適用したいプロジェクトに「Plugins」フォルダを作ります。  
@@ -65,7 +65,7 @@ Create a "Plugins" folder in the project to which you want to apply the plug-in.
 - 「Plugins」フォルダ内に「UI_Blooman」フォルダを移動します。  
 Move the "UI_Blooman" folder into the "Plugins" folder.
 
-- Projectを開き、Pluginsウィンドウからプラグインが適用されていることを確認します。
+- Projectを開き、Pluginsウィンドウからプラグインが適用されていることを確認します。  
 Open Project and verify that the plug-in has been applied from the Plugins window.
 
 
@@ -83,7 +83,7 @@ Select Fake Bloom from the Palette tab and drag and drop it to the Hierachy or D
 # パラメータ / Parameter
 
 ## Overhang
-発光部分のはみだし量を設定します。広く発光させたい場合は大きくする必要があります。
+発光部分のはみだし量を設定します。広く発光させたい場合は大きくする必要があります。  
 Sets the amount of overhang of the bloom area. If you want the light to emit over a wider area, you need to increase the overhang.
 
 
@@ -96,15 +96,15 @@ If this is off, Fake Bloom will automatically create a temporary bloom texture a
 
 
 ## Bloom Texture
-Use Textureパラメータがオンの時、描画に使うテクスチャアセットを指定します。
+Use Textureパラメータがオンの時、描画に使うテクスチャアセットを指定します。  
 When the Use Texture parameter is on, it specifies the texture asset to be used for drawing.
 
 ## Builder
-ブルームテクスチャ生成処理に使うクラスを指定します。
+ブルームテクスチャ生成処理に使うクラスを指定します。  
 Specifies the class used for the bloom texture generation process.
 
 ### Alpha to Luminance
-子要素の全体を発光させるか、高輝度なピクセルを発光させるかを設定します。
+子要素の全体を発光させるか、高輝度なピクセルを発光させるかを設定します。  
 Sets whether to emit the entire child element or the high intensity pixels.
 
 ### Luminance Threshold
@@ -135,7 +135,7 @@ Sets the size compression of the generated bloom texture. The higher this value,
 ### Build Phase
 
 #### At Create
-Widgetの生成時に1回だけブルームテクスチャを作ります。ゲーム実行時と同じ処理です。
+Widgetの生成時に1回だけブルームテクスチャを作ります。ゲーム実行時と同じ処理です。  
 Bloom texture is created only once when the widget is generated. This is the same process as when the game is executed.
 
 
