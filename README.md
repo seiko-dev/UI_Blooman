@@ -2,6 +2,9 @@
 Unreal Engine用プラグインです。子要素を擬似的に発光させる「Fake Bloom」ウィジェットが追加されます。  
 Plugin for Unreal Engine. A "Fake Bloom" widget is added to pseudo-bloom child elements.  
 
+![optimized](https://user-images.githubusercontent.com/40533980/182017373-15ef663b-3caf-47e8-9861-0f2052ab81cb.gif)
+
+
 # 特徴 / Feature
 - 子要素のブルームテクスチャをRender Targetとして生成し、描画します。  
 Generate and draw the child element's bloom texture as a Render Target.  
