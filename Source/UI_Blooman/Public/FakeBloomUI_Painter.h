@@ -31,7 +31,13 @@ public:
                                   const FSlateBrush& Brush);
 
     UFUNCTION(BlueprintImplementableEvent, Category = "Painter")
-        void SetRenderTexture(UTextureRenderTarget2D* InRenderTexture);
+    void SetRenderTexture(UTextureRenderTarget2D* InRenderTexture);
+
+    UFUNCTION(BlueprintPure, Category = "Painter")
+    float GetOpacity() const { return Opacity; }
+
+public:
+    void SetOpacity(float InOpacity);
 
 public:
     TObjectPtr<UFakeBloomUI> FakeBloomUI;
@@ -44,4 +50,7 @@ public:
 
 protected:
     virtual class UWorld* GetWorld() const;
+
+private:
+    float Opacity;
 };
