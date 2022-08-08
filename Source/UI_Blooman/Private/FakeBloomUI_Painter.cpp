@@ -26,6 +26,11 @@ void UFakeBloomUI_Painter::DrawImageToCenter(FPaintContext& Context,
     Context.MaxLayer++;
 }
 
+void UFakeBloomUI_Painter::SetOpacity(float InOpacity)
+{
+    Opacity = InOpacity;
+}
+
 bool UFakeBloomUI_Painter::IsUsingValidTexture() const
 {
     if (FakeBloomUI) {

@@ -76,7 +76,17 @@ void UFakeBloomUI::OnPaintPreProcess(const FFakeBloomUI_PreProcessArgs& args)
 
 void UFakeBloomUI::OnPaint(FPaintContext& Context)
 {
+    float Opacity = 1.0f;
+    {
+        UWidget* Widget = this;
+        while (Widget) {
+            Opacity *= Widget->GetRenderOpacity();
+            Widget = Widget->GetParent();
+        }
+    }
+
     if (Painter) {
+        Painter->SetOpacity(Opacity);
         Painter->OnPaint(Context);
     }
 }
