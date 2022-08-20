@@ -25,6 +25,42 @@ public:
     {}
 };
 
+USTRUCT(Blueprintable)
+struct UI_BLOOMAN_API FFakeBloomUI_OverhangAmount
+{
+    GENERATED_BODY()
+public:
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Appearance, meta = (ClampMin = 0, ClampMax = 2048, UIMin = 0, UIMax = 256))
+    int32 Left;
+
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Appearance, meta = (ClampMin = 0, ClampMax = 2048, UIMin = 0, UIMax = 256))
+    int32 Top;
+
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Appearance, meta = (ClampMin = 0, ClampMax = 2048, UIMin = 0, UIMax = 256))
+    int32 Right;
+
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Appearance, meta = (ClampMin = 0, ClampMax = 2048, UIMin = 0, UIMax = 256))
+    int32 Bottom;
+
+public:
+    FFakeBloomUI_OverhangAmount()
+        : Left(0), Top(0), Right(0), Bottom(0)
+    {}
+
+    FFakeBloomUI_OverhangAmount(int32 Value)
+        : Left(Value), Top(Value), Right(Value), Bottom(Value)
+    {}
+
+    int32 GetSizeX() const
+    {
+        return Left + Right;
+    }
+    int32 GetSizeY() const
+    {
+        return Top + Bottom;
+    }
+};
+
 // UObject化する等して分割したいが、Sequencer対応の都合で今はStruct
 USTRUCT(BlueprintType)
 struct UI_BLOOMAN_API FFakeBloomUI_BaseParameter
@@ -32,12 +68,8 @@ struct UI_BLOOMAN_API FFakeBloomUI_BaseParameter
     GENERATED_BODY()
 public:
     // Amount of bloom to draw outside the Widget.
-    UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Parameter", meta = (ClampMin = "0", ClampMax = "2048", UIMin = "0", UIMax = "256"))
-    int32 OverhangX;
-
-    // Amount of bloom to draw outside the Widget.
-    UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Parameter", meta = (ClampMin = "0", ClampMax = "2048", UIMin = "0", UIMax = "256"))
-    int32 OverhangY;
+    UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Parameter")
+    FFakeBloomUI_OverhangAmount Overhang;
 
     UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Common")
     bool bUseTexture;
@@ -55,8 +87,7 @@ public:
     FVector2D SizeScale;
 
     FFakeBloomUI_BaseParameter()
-        : OverhangX(0)
-        , OverhangY(0)
+        : Overhang(0)
         , bUseTexture(false)
         , BloomTexture(nullptr)
         , Brush()

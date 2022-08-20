@@ -25,8 +25,7 @@ public:
 
     UFUNCTION(BlueprintCallable, BlueprintPure=false, Category = "Painter")
     static void DrawImageToCenter(UPARAM(ref) FPaintContext& Context,
-                                  int32 OverhangX,
-                                  int32 OverhangY,
+                                  const FFakeBloomUI_OverhangAmount& Overhang,
                                   const FVector2D& InSizeScale,
                                   const FSlateBrush& Brush);
 

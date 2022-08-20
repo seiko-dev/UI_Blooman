@@ -21,8 +21,7 @@ UFakeBloomUI_Builder::UFakeBloomUI_Builder()
 bool UFakeBloomUI_Builder::DrawWidgetToTarget(UTextureRenderTarget2D* Target,
                                               class UWidget* WidgetToRender,
                                               const FFakeBloomUI_PreProcessArgs& PreProcessArgs,
-                                              int32 OverhangX,
-                                              int32 OverhangY,
+                                              const FFakeBloomUI_OverhangAmount& Overhang,
                                               bool UseGamma,
                                               bool UpdateImmediate) const
 {
@@ -48,7 +47,7 @@ bool UFakeBloomUI_Builder::DrawWidgetToTarget(UTextureRenderTarget2D* Target,
     check(WidgetRenderer);
 
     {
-        const FVector2D DrawOffset(OverhangX, OverhangY);
+        const FVector2D DrawOffset(Overhang.Left, Overhang.Top);
         WidgetRenderer->SetIsPrepassNeeded(false); // Paintで先に描画済み(Layout計算済み)なのでPrepass不要
 
 #if 1 /* Niagara UI Renderer対応実装 */
