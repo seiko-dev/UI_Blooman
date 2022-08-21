@@ -55,6 +55,12 @@ public:
     UPROPERTY(BlueprintReadOnly, Category = "Builder")
     TObjectPtr<UWidget> TargetWidget;
 
+    UPROPERTY(BlueprintReadWrite, Category = "Builder")
+    UTextureRenderTarget2D* ResultRenderTarget;
+
+    UPROPERTY(BlueprintReadWrite, Category = "Builder")
+    FVector2D BaseWidgetSize;
+
 public:
     FFakeBloomUI_BaseParameter BaseParameter;
 
