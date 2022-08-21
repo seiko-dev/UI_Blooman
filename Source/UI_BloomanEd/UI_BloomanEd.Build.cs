@@ -44,6 +44,7 @@ public class UI_BloomanEd : ModuleRules
                 "InputCore",
                 "UnrealEd",
                 "EditorSubsystem",
+                "EditorStyle",
             }
             );
 		

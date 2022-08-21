@@ -14,6 +14,7 @@ public:
     
     // IDetailCustomization interface
     virtual void CustomizeDetails(IDetailLayoutBuilder& DetailLayout) override;
+    virtual void PendingDelete() override;
     // End of IDetailCustomizationinterface
 
 private:
@@ -24,7 +25,9 @@ private:
     void ToggleOutline();
     void FinishCreateTexture();
     void TriggerCreateTextureCommand();
-    
+
+    void OnUpdateStats(class UFakeBloomUI* Widget);
+
     TSharedPtr<SWidget> SearchNearestParentAssetEditor(TSharedPtr<SWidget> CurrentWidget);
     TSharedPtr<SWidget> SearchNearestChildDesignerView(TSharedPtr<SWidget> CurrentWidget);
 
@@ -34,4 +37,5 @@ private:
     TArray<TWeakObjectPtr<UObject>> SelectedObjects;
     TSharedPtr<class SWidget> DesignerView;
     int32_t TextureCreateWorkerNum;
+    TSharedPtr<STextBlock> BloomTextureStatText;
 };

@@ -4,11 +4,13 @@
 #include "SFakeBloomUI.h"
 #include "FakeBloomUI_Builder.h"
 #include "FakeBloomUI_Painter.h"
+#include "AssetRegistry/AssetRegistryModule.h"
 
 #if WITH_EDITOR
 #include "Kismet/KismetRenderingLibrary.h"
+#include <sstream>
+#include <iomanip>
 #endif
-#include "AssetRegistry/AssetRegistryModule.h"
 
 #define LOCTEXT_NAMESPACE "UI_BLOOMAN"
 
@@ -89,6 +91,10 @@ void UFakeBloomUI::OnPaint(FPaintContext& Context)
         Painter->SetOpacity(Opacity);
         Painter->OnPaint(Context);
     }
+
+#if WITH_EDITOR
+    UpdateStats.ExecuteIfBound(this);
+#endif
 }
 
 void UFakeBloomUI::ReleaseSlateResources(bool bReleaseChildren)
@@ -162,9 +168,9 @@ void UFakeBloomUI::OverwriteTexture(UTextureRenderTarget2D* InRenderTarget)
 
     if (BaseParameter.BloomTexture) {
         UKismetRenderingLibrary::ConvertRenderTargetToTexture2DEditorOnly(
-        GetWorld(),
-        InRenderTarget,
-        BaseParameter.BloomTexture);
+            GetWorld(),
+            InRenderTarget,
+            BaseParameter.BloomTexture);
 
         // 圧縮設定も上書き
         BaseParameter.BloomTexture->CompressionSettings = TextureFormat;
@@ -180,6 +186,43 @@ void UFakeBloomUI::OnFinishWriteJob()
     FinishEditorCommand.ExecuteIfBound();
     FinishEditorCommand.Unbind();
 }
+
+FString UFakeBloomUI::GetBloomTextureStat() const
+{
+    int32 TexSizeX(0);
+    int32 TexSizeY(0);
+    int32 ResourceSize(0);
+
+    if (BaseParameter.IsUsingValidTexture()) {
+        TexSizeX = BaseParameter.BloomTexture->GetSizeX();
+        TexSizeY = BaseParameter.BloomTexture->GetSizeY();
+        ResourceSize = BaseParameter.BloomTexture->GetResourceSizeBytes(EResourceSizeMode::Exclusive);
+        
+    } else {
+        if (UTextureRenderTarget2D* RenderTarget = Builder->ResultRenderTarget) {
+            TexSizeX = static_cast<int32>(RenderTarget->GetSurfaceWidth());
+            TexSizeY = static_cast<int32>(RenderTarget->GetSurfaceHeight());
+            ResourceSize = RenderTarget->GetResourceSizeBytes(EResourceSizeMode::Exclusive);
+        }
+    }
+
+    // FTextureEditorToolkit::PopulateQuickInfo に準拠
+    ResourceSize = (ResourceSize + 512)/1024;
+
+    const int32 BaseSizeX(Builder->BaseWidgetSize.X);
+    const int32 BaseSizeY(Builder->BaseWidgetSize.Y);
+    const int32 OverhangedSizeX(BaseSizeX + BaseParameter.Overhang.GetSizeX());
+    const int32 OverhangedSizeY(BaseSizeY + BaseParameter.Overhang.GetSizeY());
+
+    std::ostringstream oss;
+    oss << "  Widget Size: " << std::setw(4) << BaseSizeX << "x" << std::setw(4) << BaseSizeY << std::endl;
+    oss << "   +Overhange: " << std::setw(4) << OverhangedSizeX << "x" << std::setw(4) << OverhangedSizeY << std::endl;
+    oss << " Texture Size: " << std::setw(4) << TexSizeX << "x" << std::setw(4) << TexSizeY << std::endl;
+    oss << " Texture Type: " << (BaseParameter.IsUsingValidTexture() ? "Static Texture" : "Render Target") << std::endl;;
+    oss << "Resource Size: " << ResourceSize << " KB";
+    return oss.str().c_str();
+}
+
 #endif
 
 TSharedRef<SWidget> UFakeBloomUI::RebuildWidget()

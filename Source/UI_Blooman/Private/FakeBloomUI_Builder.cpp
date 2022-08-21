@@ -15,6 +15,8 @@ UFakeBloomUI_Builder::UFakeBloomUI_Builder()
     , Compression(1)
     , BuildPhase(EFakeBloomUI_BuildPhase::AtDesignTime)
     , TargetWidget(nullptr)
+    , ResultRenderTarget(nullptr)
+    , BaseWidgetSize(0,0)
 {
 }
 

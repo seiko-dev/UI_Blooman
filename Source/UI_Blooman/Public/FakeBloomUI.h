@@ -55,6 +55,7 @@ public:
 
     // UWidget interface
     virtual const FText GetPaletteCategory() override;
+
 public:
     // 本ClassにEditorSubSystemを意識させない為のDelegate
     DECLARE_DELEGATE_OneParam(FCheckEditorCommand, UFakeBloomUI*);
@@ -71,6 +72,14 @@ public:
 
     void OnFinishWriteJob();
 
+public:
+    // Property変更時、Stat欄に情報をすぐ反映するためのEvent Delegate
+    DECLARE_DELEGATE_OneParam(FUpdateStat, UFakeBloomUI*);
+    FUpdateStat UpdateStats;
+
+public:
+    // for Detail Customizations
+    FString GetBloomTextureStat() const;
 #endif
 
 protected:

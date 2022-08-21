@@ -191,8 +191,10 @@ void FFakeBloomUI_Customization::CustomizeDetails(IDetailLayoutBuilder& DetailLa
 {
     // Category
     IDetailCategoryBuilder& Category = DetailLayout.EditCategory(TEXT("Fake Bloom"),
-                                                                    FText::GetEmpty(),
-                                                                    ECategoryPriority::TypeSpecific);
+                                                                 FText::GetEmpty(),
+                                                                 ECategoryPriority::TypeSpecific);
+
+    SelectedObjects = DetailLayout.GetSelectedObjects();
 
     // Base
     Category.AddProperty(DetailLayout.GetProperty(GET_MEMBER_NAME_CHECKED(UFakeBloomUI, BaseParameter)));
@@ -218,6 +220,29 @@ void FFakeBloomUI_Customization::CustomizeDetails(IDetailLayoutBuilder& DetailLa
     // BrushはImage以外使わないので隠す
     DetailLayout.HideProperty(GET_MEMBER_NAME_CHECKED(UFakeBloomUI, BaseParameter.Brush));
 
+    // State
+    {
+        BloomTextureStatText = nullptr;
+
+        if (SelectedObjects.Num() == 1) {
+            if (UFakeBloomUI* Widget = Cast<UFakeBloomUI>(SelectedObjects[0])) {
+                IDetailGroup& Group = Category.AddGroup("Stats", FText::FromString("Stats"));
+
+                TSharedRef<STextBlock> Text = SNew(STextBlock)
+                    .Text(FText::FromString(Widget->GetBloomTextureStat()))
+                    .Font(FEditorStyle::GetWidgetStyle<FTextBlockStyle>("Log.Normal").Font);
+
+                Group.AddWidgetRow()
+                    .WholeRowContent()
+                    [
+                        Text
+                    ];
+
+                BloomTextureStatText = Text;
+            }
+        }
+    }
+
     // BStatic Texture Create
     {
         IDetailGroup& Group = Category.AddGroup("Static Texture Create", FText::FromString("Static Texture Create"));
@@ -232,7 +257,7 @@ void FFakeBloomUI_Customization::CustomizeDetails(IDetailLayoutBuilder& DetailLa
             [
                 SNew(SButton)
                 .Text(FText::FromString(TEXT("Create New Texture")))
-            .OnClicked(this, &FFakeBloomUI_Customization::OnCreateNewTextureClicked)
+                .OnClicked(this, &FFakeBloomUI_Customization::OnCreateNewTextureClicked)
             ]
         + SHorizontalBox::Slot()
             .AutoWidth()
@@ -240,7 +265,7 @@ void FFakeBloomUI_Customization::CustomizeDetails(IDetailLayoutBuilder& DetailLa
             [
                 SNew(SButton)
                 .Text(FText::FromString(TEXT("Overwrite Texture")))
-            .OnClicked(this, &FFakeBloomUI_Customization::OnOverwriteTextureClicked)
+                .OnClicked(this, &FFakeBloomUI_Customization::OnOverwriteTextureClicked)
             ];
                 
         Group.AddWidgetRow()
@@ -298,10 +323,24 @@ void FFakeBloomUI_Customization::CustomizeDetails(IDetailLayoutBuilder& DetailLa
         TextureHandle = BaseParamHandle->GetChildHandle(FName("BloomTexture"));
     }
 
-    SelectedObjects = DetailLayout.GetSelectedObjects();
+    // Stat更新を検知
+    for (auto& Obj : SelectedObjects) {
+        if (UFakeBloomUI* Widget = Cast<UFakeBloomUI>(Obj.Get())) {
+            Widget->UpdateStats.BindRaw(this, &FFakeBloomUI_Customization::OnUpdateStats);
+        }
+    }
 
     // 遅延されていた命令があるなら、ここで実行
     TriggerCreateTextureCommand();
+}
+
+void FFakeBloomUI_Customization::PendingDelete()
+{
+    for (auto& Obj : SelectedObjects) {
+        if (UFakeBloomUI* Widget = Cast<UFakeBloomUI>(Obj.Get())) {
+            Widget->UpdateStats.Unbind();
+        }
+    }
 }
 
 bool FFakeBloomUI_Customization::HideOutline()
@@ -543,6 +582,15 @@ FReply FFakeBloomUI_Customization::OnOverwriteTextureClicked()
     }
 
     return FReply::Handled();
+}
+
+void FFakeBloomUI_Customization::OnUpdateStats(UFakeBloomUI* Widget)
+{
+    if (SelectedObjects.Num() == 1) {
+        if (BloomTextureStatText) {
+            BloomTextureStatText->SetText(FText::FromString(Widget->GetBloomTextureStat()));
+        }
+    }
 }
 
 #undef LOCTEXT_NAMESPACE 
