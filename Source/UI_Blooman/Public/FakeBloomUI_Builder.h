@@ -45,8 +45,7 @@ public:
     int32 MaxMipLevel;
 
     // Final Texture Compression Strength
-    // 0 is resereved for free texture size (not pad to power of 2) mode.
-    UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Parameter", meta = (ClampMin = "0", UIMin = "1"))
+    UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Parameter", meta = (ClampMin = "0", UIMin = "0"))
     int32 Compression;
 
     UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Parameter")
