@@ -10,6 +10,7 @@
 #include "Kismet/KismetRenderingLibrary.h"
 #include <sstream>
 #include <iomanip>
+#include "AssetTools/Public/AssetToolsModule.h"
 #endif
 
 #define LOCTEXT_NAMESPACE "UI_BLOOMAN"
@@ -26,8 +27,8 @@ UFakeBloomUI::UFakeBloomUI(const FObjectInitializer& ObjectInitializer)
         // TODO: Project Settingsでの指定
         FString Path = "/UI_Blooman/M_FakeBloomUI_PaintAdditive.M_FakeBloomUI_PaintAdditive";
 
-        FAssetRegistryModule& AssetRegistryModule = FModuleManager::LoadModuleChecked<FAssetRegistryModule>("AssetRegistry");
-        FAssetData AssetData = AssetRegistryModule.Get().GetAssetByObjectPath(FName(*Path));
+        IAssetRegistry& AssetRegistry = FModuleManager::LoadModuleChecked<FAssetRegistryModule>("AssetRegistry").Get();
+        FAssetData AssetData = AssetRegistry.GetAssetByObjectPath(FName(*Path));
         
         // 同期読込
         if (UObject* PaintMaterial = AssetData.GetAsset()) {
@@ -140,26 +141,45 @@ const FText UFakeBloomUI::GetPaletteCategory()
 
 void UFakeBloomUI::CreateNewTexture(UTextureRenderTarget2D* InRenderTarget)
 {
-    Builder->OnFinishBuild.RemoveDynamic(this, &UFakeBloomUI::CreateNewTexture);
+    UObject* DummyTexSource(nullptr);
+    {
+        FString Path = "/UI_Blooman/T_Dummy.T_Dummy";
+        IAssetRegistry& AssetRegistry = FModuleManager::LoadModuleChecked<FAssetRegistryModule>("AssetRegistry").Get();
+        FAssetData AssetData = AssetRegistry.GetAssetByObjectPath(FName(*Path));
+        DummyTexSource = AssetData.GetAsset();
 
-    if (!Builder) {
-        // ここで生成できてないとおかしい
-        ensure(0);
-        return;
+        if (!DummyTexSource) {
+            ensure(0);
+            return;
+        }
     }
+    
+    UTexture2D* NewTex(nullptr);
+    {
+        FString Name;
+        FString PackageName;
+        IAssetTools& AssetTools = FModuleManager::LoadModuleChecked<FAssetToolsModule>("AssetTools").Get();
+        AssetTools.CreateUniqueAssetName(TextureSavePath, TEXT(""), PackageName, Name);
 
-    UTexture2D* Tex = UKismetRenderingLibrary::RenderTargetCreateStaticTexture2DEditorOnly(
-        InRenderTarget,
-        TextureSavePath,
-        TextureFormat,
-        TextureMipGenSettings::TMGS_NoMipmaps);
+        UObject* NewObj = AssetTools.DuplicateAsset(Name, FPaths::GetPath(PackageName), DummyTexSource);
+        NewTex = Cast<UTexture2D>(NewObj);
 
-    if (Tex) {
-        BaseParameter.bUseTexture = true;
-        BaseParameter.BloomTexture = Tex;
+        if (!NewTex) {
+            ensure(0);
+            return;
+        }
     }
+    
+    //// package needs saving
+    //NewTex->MarkPackageDirty();
 
-    OnFinishWriteJob();
+    //// Notify the asset registry
+    //FAssetRegistryModule::AssetCreated(NewTex);
+    
+    BaseParameter.bUseTexture = true;
+    BaseParameter.BloomTexture = NewTex;
+
+    OverwriteTexture(InRenderTarget);
 }
 
 void UFakeBloomUI::OverwriteTexture(UTextureRenderTarget2D* InRenderTarget)
@@ -172,8 +192,9 @@ void UFakeBloomUI::OverwriteTexture(UTextureRenderTarget2D* InRenderTarget)
             InRenderTarget,
             BaseParameter.BloomTexture);
 
-        // 圧縮設定も上書き
+        // 形式設定も上書き
         BaseParameter.BloomTexture->CompressionSettings = TextureFormat;
+        BaseParameter.BloomTexture->MipGenSettings = TextureMipGenSettings::TMGS_NoMipmaps;
         BaseParameter.BloomTexture->PostEditChange();
     }
 
