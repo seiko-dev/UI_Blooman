@@ -6,8 +6,8 @@ Plugin for Unreal Engine. A "Fake Bloom" widget is added to pseudo-bloom child e
 
 
 # 特徴 / Feature
-- 子要素のブルームテクスチャをRender Targetとして生成し、描画します。  
-Generate and draw the child element's bloom texture as a Render Target.  
+- このプラグインを導入すると「Fake Bloom」というパネルが追加されます。このパネルは、子要素が発光して見えるように描画します。  
+After installing this plugin, a panel called "Fake Bloom" will be added. This panel draws child elements so that they appear to glow.  
 
 - ブルームテクスチャをテクスチャアセットとして保存可能です。  
 Bloom textures can be saved as texture assets.  
