@@ -66,6 +66,8 @@ bool UFakeBloomUI_Builder::DrawWidgetToTarget(UTextureRenderTarget2D* Target,
 
         WidgetRenderer->ViewOffset = DrawOffset - ContentPos;
 
+        TSharedPtr<SWidget> OldParent = Content->GetParentWidget();
+
         // OffsetしたCanvas
         TSharedRef<SConstraintCanvas> Canvas = SNew(SConstraintCanvas)
             + SConstraintCanvas::Slot()
@@ -114,6 +116,10 @@ bool UFakeBloomUI_Builder::DrawWidgetToTarget(UTextureRenderTarget2D* Target,
         }
 #endif
 
+        if (OldParent.IsValid())
+        {
+            Content->AssignParentWidget(OldParent);
+        }
 
 #else /* シンプル版 */
         WidgetRenderer->ViewOffset = DrawOffset;
