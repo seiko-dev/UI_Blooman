@@ -236,9 +236,9 @@ FString UFakeBloomUI::GetBloomTextureStat() const
     const int32 OverhangedSizeY(BaseSizeY + BaseParameter.Overhang.GetSizeY());
 
     std::ostringstream oss;
-    oss << "  Widget Size: " << std::setw(4) << BaseSizeX << "x" << std::setw(4) << BaseSizeY << std::endl;
+    oss << "  Widget Res.: " << std::setw(4) << BaseSizeX << "x" << std::setw(4) << BaseSizeY << std::endl;
     oss << "   +Overhange: " << std::setw(4) << OverhangedSizeX << "x" << std::setw(4) << OverhangedSizeY << std::endl;
-    oss << " Texture Size: " << std::setw(4) << TexSizeX << "x" << std::setw(4) << TexSizeY << std::endl;
+    oss << " Texture Res.: " << std::setw(4) << TexSizeX << "x" << std::setw(4) << TexSizeY << std::endl;
     oss << " Texture Type: " << (BaseParameter.IsUsingValidTexture() ? "Static Texture" : "Render Target") << std::endl;;
     oss << "Resource Size: " << ResourceSize << " KB";
     return oss.str().c_str();
