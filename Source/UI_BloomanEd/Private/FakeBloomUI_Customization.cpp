@@ -230,7 +230,7 @@ void FFakeBloomUI_Customization::CustomizeDetails(IDetailLayoutBuilder& DetailLa
 
                 TSharedRef<STextBlock> Text = SNew(STextBlock)
                     .Text(FText::FromString(Widget->GetBloomTextureStat()))
-                    .Font(FEditorStyle::GetWidgetStyle<FTextBlockStyle>("Log.Normal").Font);
+                    .Font(FAppStyle::GetWidgetStyle<FTextBlockStyle>("Log.Normal").Font);
 
                 Group.AddWidgetRow()
                     .WholeRowContent()
@@ -514,7 +514,8 @@ TSharedPtr<SWidget> FFakeBloomUI_Customization::SearchNearestChildDesignerView(T
 
         // ClassがPrivateなので文字列直打ち
         const FName ClassName(ChildWidget->GetType());
-        if (ClassName == FName("SDesignerView")) {
+        UE_LOG(LogTemp, Log, TEXT("%s: %s"), UTF8_TO_TCHAR(__func__), *ClassName.ToString());
+        if (ClassName == FName("TToolCompatibleMixin<SDesignerView>")) {
             return ChildWidget;
         }
 

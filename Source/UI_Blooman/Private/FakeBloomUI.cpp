@@ -4,6 +4,7 @@
 #include "SFakeBloomUI.h"
 #include "FakeBloomUI_Builder.h"
 #include "FakeBloomUI_Painter.h"
+#include "AssetRegistry/AssetData.h"
 #include "AssetRegistry/AssetRegistryModule.h"
 
 #if WITH_EDITOR
@@ -21,14 +22,14 @@ UFakeBloomUI::UFakeBloomUI(const FObjectInitializer& ObjectInitializer)
     : Super(ObjectInitializer)
 {
     bIsVariable = true;
-    Visibility = ESlateVisibility::SelfHitTestInvisible;
+    SetVisibility(ESlateVisibility::SelfHitTestInvisible);
 
     {
         // TODO: Project Settingsでの指定
         FString Path = "/UI_Blooman/M_FakeBloomUI_PaintAdditive.M_FakeBloomUI_PaintAdditive";
 
         IAssetRegistry& AssetRegistry = FModuleManager::LoadModuleChecked<FAssetRegistryModule>("AssetRegistry").Get();
-        FAssetData AssetData = AssetRegistry.GetAssetByObjectPath(FName(*Path));
+        FAssetData AssetData = AssetRegistry.GetAssetByObjectPath(FSoftObjectPath(Path));
         
         // 同期読込
         if (UObject* PaintMaterial = AssetData.GetAsset()) {
@@ -145,7 +146,7 @@ void UFakeBloomUI::CreateNewTexture(UTextureRenderTarget2D* InRenderTarget)
     {
         FString Path = "/UI_Blooman/T_Dummy.T_Dummy";
         IAssetRegistry& AssetRegistry = FModuleManager::LoadModuleChecked<FAssetRegistryModule>("AssetRegistry").Get();
-        FAssetData AssetData = AssetRegistry.GetAssetByObjectPath(FName(*Path));
+        FAssetData AssetData = AssetRegistry.GetAssetByObjectPath(FSoftObjectPath(Path));
         DummyTexSource = AssetData.GetAsset();
 
         if (!DummyTexSource) {
@@ -168,13 +169,10 @@ void UFakeBloomUI::CreateNewTexture(UTextureRenderTarget2D* InRenderTarget)
             ensure(0);
             return;
         }
-    }
-    
-    //// package needs saving
-    //NewTex->MarkPackageDirty();
 
-    //// Notify the asset registry
-    //FAssetRegistryModule::AssetCreated(NewTex);
+        // ModifyせずにRenderTargetを上書きするとエラーが出る
+        NewTex->Modify(true);
+    }
     
     BaseParameter.bUseTexture = true;
     BaseParameter.BloomTexture = NewTex;

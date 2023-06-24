@@ -5,6 +5,7 @@
 #include "Widgets/Layout/SConstraintCanvas.h"
 #include "FakeBloomUI.h"
 #include "Engine/TextureRenderTarget2D.h"
+#include "RenderingThread.h"
 
 UFakeBloomUI_Builder::UFakeBloomUI_Builder()
     : AlphaToLuminance(1.0f)
