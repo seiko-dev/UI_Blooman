@@ -13,13 +13,13 @@ void UFakeBloomUI_Painter::DrawImageToCenter(FPaintContext& Context,
                                              const FVector2D& InSizeScale,
                                              const FSlateBrush& Brush)
 {
-    FVector2D Size = (Context.AllottedGeometry.GetLocalSize() + FVector2D(Overhang.GetSizeX(), Overhang.GetSizeY())) * InSizeScale;
-    FVector2D Position = -FVector2D(Overhang.Left, Overhang.Top);
+    const FVector2D Size = (Context.AllottedGeometry.GetLocalSize() + FVector2D(Overhang.GetSizeX(), Overhang.GetSizeY())) * InSizeScale;
+    const FSlateLayoutTransform Layout(1.0f, -FVector2D(Overhang.Left, Overhang.Top));
 
     FSlateDrawElement::MakeBox(
         Context.OutDrawElements,
         Context.MaxLayer,
-        Context.AllottedGeometry.ToPaintGeometry(Position, Size),
+        Context.AllottedGeometry.ToPaintGeometry(Size, Layout),
         &Brush);
 
     Context.MaxLayer++;
