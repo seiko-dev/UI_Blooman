@@ -46,7 +46,10 @@ There is no proof yet that this plug-in has actually been used in a work and has
 
 
 # 対応バージョン / Supported Versions
-- Unreal Engine 5.0.3 or later
+- [v0.1.3 or later](https://github.com/seiko-dev/UI_Blooman/releases)
+  - UE5.2.1
+- [v0.1.2](https://github.com/seiko-dev/UI_Blooman/releases/tag/v0.1.2)
+  - UE5.0.3
 
 # 対応プラットフォーム / Supported Platforms
 - Win64
