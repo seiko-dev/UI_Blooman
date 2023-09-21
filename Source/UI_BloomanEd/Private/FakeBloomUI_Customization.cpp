@@ -10,7 +10,7 @@
 #include "UI_BloomanEdSubsystem.h"
 #include "ContentBrowserModule.h"
 #include "IContentBrowserSingleton.h"
-#include "MainFrame/Public/Interfaces/IMainFrameModule.h"
+#include "Interfaces/IMainFrameModule.h"
 #include "IDetailGroup.h"
 
 #define LOCTEXT_NAMESPACE "UI_BloomanEd"
