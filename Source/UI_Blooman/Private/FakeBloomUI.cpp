@@ -11,7 +11,7 @@
 #include "Kismet/KismetRenderingLibrary.h"
 #include <sstream>
 #include <iomanip>
-#include "AssetTools/Public/AssetToolsModule.h"
+#include "AssetToolsModule.h"
 #endif
 
 #define LOCTEXT_NAMESPACE "UI_BLOOMAN"
